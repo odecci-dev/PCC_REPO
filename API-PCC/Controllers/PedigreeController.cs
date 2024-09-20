@@ -328,7 +328,8 @@ namespace API_PCC.Controllers
             DataTable btype = db.SelectDb(tbl1).Tables[0];
             string str_btype = btype.Rows.Count != 0 ? btype.Rows[0]["Birth_Type_Code"].ToString() : "";
 
-            string tbl2 = $@"SELECT  Blood_Code FROM A_Blood_Comp where id='" + animal_details.BirthType + "'";
+            //string tbl2 = $@"SELECT  Blood_Code FROM A_Blood_Comp where id='" + animal_details.BirthType + "'";
+            string tbl2 = $@"SELECT  Blood_Code FROM A_Blood_Comp where id='" + animal_details.BloodCode + "'";
             DataTable bcode = db.SelectDb(tbl2).Tables[0];
             string str_bcode = bcode.Rows.Count != 0 ? bcode.Rows[0]["Blood_Code"].ToString() : "";
             var animalDetails = new AnimalDetails();
@@ -341,6 +342,7 @@ namespace API_PCC.Controllers
             animalDetails.Sex = animal_details.Sex;
             animalDetails.Breed = str_breedcode;
             animalDetails.BloodComposition = str_bcode;
+            animalDetails.BloodResult = animal_details.BloodResult.ToString();
             animalDetails.DateOfBirth = animal_details.DateOfBirth;
             animalDetails.CountryOfBirth = animal_details.CountryOfBirth;
             animalDetails.BirthType = str_btype;
