@@ -134,11 +134,14 @@ namespace API_PCC.Controllers
             //public int level { get; set; }
             public int Id { get; set; }
             public string animalId { get; set; }
+            public string breedCode { get; set; }
+            public string bloodResult{ get; set; }
             public string breedRegistryNumber { get; set; }
             public string Photo { get; set; }
             public string AnimalName { get; set; }
             public string DateOfBirth { get; set; }
             public string CountryOfBirth { get; set; }
+            public string bloodComp { get; set; }
             public int level { get; set; }
             public parentsirelv0 parentsirelv0 { get; set; }
             public parentdamlv0 parentdamlv0 { get; set; }
@@ -391,7 +394,6 @@ namespace API_PCC.Controllers
         }
  
 
-
         private HBuffHerd getHerdRecord(string herdCode)
         {
             var buffHerd = _context.HBuffHerds
@@ -601,6 +603,10 @@ namespace API_PCC.Controllers
                 item.AnimalName = animal_details.AnimalName;
                 item.DateOfBirth = animal_details.DateOfBirth.ToString();
                 item.CountryOfBirth = animal_details.CountryOfBirth.ToString();
+                var animal_blood_details = _context.ABloodComps.Where(b => b.Id == animal_details.BloodCode).FirstOrDefault();
+                item.breedCode = animal_details.BreedCode;
+                item.bloodResult = animal_details.BloodResult.ToString();
+                item.bloodComp = animal_blood_details.BloodDesc.ToString();
 
                 //=====================SIRE START HERE
                 var s_item = new parentsirelv0();
