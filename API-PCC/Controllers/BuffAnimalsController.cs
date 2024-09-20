@@ -1150,7 +1150,7 @@ namespace API_PCC.Controllers
 
             try
             {
-                aBuffAnimal.DeleteFlag = !aBuffAnimal.DeleteFlag;
+                aBuffAnimal.DeleteFlag = false;
                 aBuffAnimal.DateDeleted = null;
                 aBuffAnimal.DeletedBy = "";
                 aBuffAnimal.DateRestored = DateTime.Now;
@@ -1167,6 +1167,7 @@ namespace API_PCC.Controllers
                 return Problem(ex.GetBaseException().ToString());
             }
         }
+
         [HttpPost]
         public async Task<IActionResult> RestoreMultiple(List<RestorationModel> restorationModel)
         {
@@ -1175,17 +1176,18 @@ namespace API_PCC.Controllers
             {
                 return Problem("Entity set 'PCC_DEVContext.BuffAnimal' is null!");
             }
-            for(int x= 0; x<restorationModel.Count;x++)
+            for(int x= 0; x < restorationModel.Count; x++)
             {
                 var aBuffAnimal = await _context.ABuffAnimals.FindAsync(restorationModel[x].id);
                 if (aBuffAnimal == null || !aBuffAnimal.DeleteFlag)
                 {
-                    return Conflict("No deleted records matched!");
+                    dbmet.InsertAuditTrail("Restore BuffAnimal ID: " + aBuffAnimal.Id + " : can't restore, record is not deleted", DateTime.Now.ToString("yyyy-MM-dd"), "Animal Module", aBuffAnimal.RestoredBy, "0");
+                    //return Conflict("No deleted records matched!");
                 }
 
                 try
                 {
-                    aBuffAnimal.DeleteFlag = !aBuffAnimal.DeleteFlag;
+                    aBuffAnimal.DeleteFlag = false;
                     aBuffAnimal.DateDeleted = null;
                     aBuffAnimal.DeletedBy = "";
                     aBuffAnimal.DateRestored = DateTime.Now;
