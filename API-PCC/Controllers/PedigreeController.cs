@@ -317,6 +317,7 @@ namespace API_PCC.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult> print(int id)
         {
+            //
             var item = new AnimalPedigreePrintResponses();
             var animal_details = _context.ABuffAnimals.Where(a => a.Id == id).FirstOrDefault();
             //var animal = generatepedigree(id);
