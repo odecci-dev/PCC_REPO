@@ -134,11 +134,14 @@ namespace API_PCC.Controllers
             //public int level { get; set; }
             public int Id { get; set; }
             public string animalId { get; set; }
+            public string breedCode { get; set; }
+            public string bloodResult{ get; set; }
             public string breedRegistryNumber { get; set; }
             public string Photo { get; set; }
             public string AnimalName { get; set; }
             public string DateOfBirth { get; set; }
             public string CountryOfBirth { get; set; }
+            public string bloodComp { get; set; }
             public int level { get; set; }
             public parentsirelv0 parentsirelv0 { get; set; }
             public parentdamlv0 parentdamlv0 { get; set; }
@@ -314,6 +317,7 @@ namespace API_PCC.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult> print(int id)
         {
+            //
             var item = new AnimalPedigreePrintResponses();
             var animal_details = _context.ABuffAnimals.Where(a => a.Id == id).FirstOrDefault();
             //var animal = generatepedigree(id);
@@ -325,7 +329,8 @@ namespace API_PCC.Controllers
             DataTable btype = db.SelectDb(tbl1).Tables[0];
             string str_btype = btype.Rows.Count != 0 ? btype.Rows[0]["Birth_Type_Code"].ToString() : "";
 
-            string tbl2 = $@"SELECT  Blood_Code FROM A_Blood_Comp where id='" + animal_details.BirthType + "'";
+            //string tbl2 = $@"SELECT  Blood_Code FROM A_Blood_Comp where id='" + animal_details.BirthType + "'";
+            string tbl2 = $@"SELECT  Blood_Code FROM A_Blood_Comp where id='" + animal_details.BloodCode + "'";
             DataTable bcode = db.SelectDb(tbl2).Tables[0];
             string str_bcode = bcode.Rows.Count != 0 ? bcode.Rows[0]["Blood_Code"].ToString() : "";
             var animalDetails = new AnimalDetails();
@@ -338,6 +343,7 @@ namespace API_PCC.Controllers
             animalDetails.Sex = animal_details.Sex;
             animalDetails.Breed = str_breedcode;
             animalDetails.BloodComposition = str_bcode;
+            animalDetails.BloodResult = animal_details.BloodResult.ToString();
             animalDetails.DateOfBirth = animal_details.DateOfBirth;
             animalDetails.CountryOfBirth = animal_details.CountryOfBirth;
             animalDetails.BirthType = str_btype;
@@ -390,7 +396,6 @@ namespace API_PCC.Controllers
             //return Ok(root);
         }
  
-
 
         private HBuffHerd getHerdRecord(string herdCode)
         {
@@ -601,6 +606,10 @@ namespace API_PCC.Controllers
                 item.AnimalName = animal_details.AnimalName;
                 item.DateOfBirth = animal_details.DateOfBirth.ToString();
                 item.CountryOfBirth = animal_details.CountryOfBirth.ToString();
+                var animal_blood_details = _context.ABloodComps.Where(b => b.Id == animal_details.BloodCode).FirstOrDefault();
+                item.breedCode = animal_details.BreedCode;
+                item.bloodResult = animal_details.BloodResult.ToString();
+                item.bloodComp = animal_blood_details.BloodDesc.ToString();
 
                 //=====================SIRE START HERE
                 var s_item = new parentsirelv0();

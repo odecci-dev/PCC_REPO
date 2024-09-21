@@ -163,15 +163,22 @@ namespace API_PCC.Controllers
             return Ok(userlist);
         }
         [HttpPost]
-        public async Task<ActionResult<IEnumerable<TblUsersModel>>> UpdateProfile(int id, string profileimage)
+        public async Task<ActionResult<IEnumerable<TblUsersModel>>> UpdateProfile(int id, string profileimage, string fName, string lName, string email, string contNum, string address, string username)
         {
-
             string tbl_UsersModel_update = $@"UPDATE [dbo].[tbl_UsersModel] SET 
-                                             [FilePath] = '" + profileimage + "'" +
+                                             [FilePath] = '" + profileimage + "'," +
+                                             "[Fname] = '" + fName + "'," +
+                                             "[Lname] = '" + lName + "'," +
+                                             "[Fullname] = '" + fName + " " + lName + "'," +
+                                             "[Email] = '" + email + "'," +
+                                             "[Cno] = '" + contNum + "'," +
+                                             "[Address] = '" + address + "'," +
+                                             "[Username] = '" + username + "'" +
                                          " WHERE id = '" + id + "'";
             string result = db.DB_WithParam(tbl_UsersModel_update);
             return Ok(result);
         }
+
         [HttpPost]
         public async Task<ActionResult<IEnumerable<TblUsersModel>>> UserJWT(string JWT)
         {
@@ -220,6 +227,7 @@ namespace API_PCC.Controllers
         [HttpPost]
         public async Task<ActionResult<IEnumerable<TblUsersModel>>> info(String username, String password)
         {
+            //
             if (_context.TblUsersModels == null)
             {
                 return Problem("Entity set 'PCC_DEVContext.TblUsersModels' is null!");

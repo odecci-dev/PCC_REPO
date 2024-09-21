@@ -250,14 +250,51 @@ namespace API_PCC.Controllers
         private IQueryable<ABuffAnimal> buildAnimalSearchQuery(BuffAnimalSearchFilterModel searchFilter)
         {
             IQueryable<ABuffAnimal> query = _context.ABuffAnimals;
+            IQueryable<HBuffHerd> queryh = _context.HBuffHerds;
+            IQueryable<TblCenterModel> queryc = _context.TblCenterModels;
+            IQueryable<TblFarmOwner> queryfo = _context.TblFarmOwners;
+            IQueryable<TblUsersModel> queryu = _context.TblUsersModels;
 
             query = query.Where(animal => !animal.DeleteFlag);
             // assuming that you return all records when nothing is specified in the filter
 
+            if (!searchFilter.centerid.IsNullOrEmpty())
+                query = query.Join(queryh,
+                                  animal => animal.HerdCode,
+                                  herd => herd.HerdCode,
+                                  (animal, herd) => new { animal, herd })
+                             .Join(_context.TblCenterModels,
+                                   combined => combined.herd.Center,
+                                   center => center.Id,
+                                   (combined, center) => new { combined.animal, center })
+                             .Where(result => result.center.Id.ToString().Contains(searchFilter.centerid))
+                             .Select(result => result.animal);
+
+            if (!searchFilter.userid.IsNullOrEmpty())
+                query = query.Join(queryh,
+                                   animal => animal.HerdCode,
+                                   herd => herd.HerdCode,
+                                   (animal, herd) => new { animal, herd })
+                             .Join(queryfo,
+                                   combined => combined.herd.Owner,
+                                   owner => owner.Id,
+                                   (combined, farmOwner) => new { combined.animal, farmOwner }) 
+                             .Join(queryu,
+                                   combined => combined.farmOwner.Id, 
+                                   ownerUser => ownerUser.Id,
+                                   (combined, farmOwnerUser) => new { combined.animal, combined.farmOwner, farmOwnerUser }) 
+                             .Where(result => result.farmOwner.FirstName == result.farmOwnerUser.Fname &&
+                                              result.farmOwner.LastName == result.farmOwnerUser.Lname &&
+                                              result.farmOwner.Address == result.farmOwnerUser.Address &&
+                                              result.farmOwnerUser.isFarmer == true &&
+                                              result.farmOwnerUser.Id.ToString().Contains(searchFilter.userid))
+                             .Select(result => result.animal);
+
             if (!searchFilter.searchValue.IsNullOrEmpty())
                 query = query.Where(animal =>
                                animal.AnimalIdNumber.Contains(searchFilter.searchValue) ||
-                               animal.AnimalName.Contains(searchFilter.searchValue));
+                               animal.AnimalName.Contains(searchFilter.searchValue) ||
+                               animal.HerdCode.Contains(searchFilter.searchValue));
 
             if (!searchFilter.filterBy.BloodCode.IsNullOrEmpty())
                 query = query.Where(animal => animal.BloodCode.Equals(searchFilter.filterBy.BloodCode));
@@ -306,6 +343,11 @@ namespace API_PCC.Controllers
                 query = query.Where(animal =>
                                animal.AnimalIdNumber.Contains(searchFilter.searchValue) ||
                                animal.AnimalName.Contains(searchFilter.searchValue));
+
+            if (!searchFilter.centerid.IsNullOrEmpty()) {
+                query = query.Where(animal =>
+                               animal.HerdCode.Equals("test01"));
+            }
 
             if (!searchFilter.filterBy.BloodCode.IsNullOrEmpty())
                 query = query.Where(animal => animal.BloodCode.Equals(searchFilter.filterBy.BloodCode));
@@ -1108,7 +1150,7 @@ namespace API_PCC.Controllers
 
             try
             {
-                aBuffAnimal.DeleteFlag = !aBuffAnimal.DeleteFlag;
+                aBuffAnimal.DeleteFlag = false;
                 aBuffAnimal.DateDeleted = null;
                 aBuffAnimal.DeletedBy = "";
                 aBuffAnimal.DateRestored = DateTime.Now;
@@ -1125,6 +1167,7 @@ namespace API_PCC.Controllers
                 return Problem(ex.GetBaseException().ToString());
             }
         }
+
         [HttpPost]
         public async Task<IActionResult> RestoreMultiple(List<RestorationModel> restorationModel)
         {
@@ -1133,17 +1176,18 @@ namespace API_PCC.Controllers
             {
                 return Problem("Entity set 'PCC_DEVContext.BuffAnimal' is null!");
             }
-            for(int x= 0; x<restorationModel.Count;x++)
+            for(int x= 0; x < restorationModel.Count; x++)
             {
                 var aBuffAnimal = await _context.ABuffAnimals.FindAsync(restorationModel[x].id);
                 if (aBuffAnimal == null || !aBuffAnimal.DeleteFlag)
                 {
-                    return Conflict("No deleted records matched!");
+                    dbmet.InsertAuditTrail("Restore BuffAnimal ID: " + aBuffAnimal.Id + " : can't restore, record is not deleted", DateTime.Now.ToString("yyyy-MM-dd"), "Animal Module", aBuffAnimal.RestoredBy, "0");
+                    //return Conflict("No deleted records matched!");
                 }
 
                 try
                 {
-                    aBuffAnimal.DeleteFlag = !aBuffAnimal.DeleteFlag;
+                    aBuffAnimal.DeleteFlag = false;
                     aBuffAnimal.DateDeleted = null;
                     aBuffAnimal.DeletedBy = "";
                     aBuffAnimal.DateRestored = DateTime.Now;
