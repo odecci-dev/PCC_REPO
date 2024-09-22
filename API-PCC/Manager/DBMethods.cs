@@ -225,11 +225,11 @@ namespace API_PCC.Manager
 
             return result;
         }
-        public List<animalresult> getanimallist(string? centerid, string? userid)
+        public List<animalresult> getanimallist(int? centerid, string? userid)
         {
             string sql = "";
             var result = new List<animalresult>();
-            if ((centerid != null && centerid != "") && (userid == null || userid == ""))
+            if ((centerid != null && centerid != 0) && (userid == null || userid == ""))
             {
                 string center_sql = $@"SELECT  Herd_Code,Center from H_Buff_Herd
                     WHERE        H_Buff_Herd.Center = '" + centerid + "'";
@@ -330,7 +330,7 @@ namespace API_PCC.Manager
                 }
 
             }
-            else if ((centerid != null && centerid != "") && (userid != null && userid != ""))
+            else if ((centerid != null && centerid != 0) && (userid != null && userid != ""))
             {
                 /// select tblusermodel get fname,lname,address
                 string user_sql = $@"SELECT  Fname,Lname,Address  from tbl_UsersModel WHERE Id = '" + userid + "'";

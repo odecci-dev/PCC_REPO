@@ -69,7 +69,7 @@ namespace API_PCC.Controllers
         {
             public string searchParam { get; set; }
             public string Sex { get; set; }
-            public string? centerid { get; set; }
+            public int? centerid { get; set; }
             public string? userid { get; set; }
             public int page { get; set; }
             public int pageSize { get; set; }
@@ -258,7 +258,7 @@ namespace API_PCC.Controllers
             query = query.Where(animal => !animal.DeleteFlag);
             // assuming that you return all records when nothing is specified in the filter
 
-            if (!searchFilter.centerid.IsNullOrEmpty())
+            if (searchFilter.centerid != 0)
                 query = query.Join(queryh,
                                   animal => animal.HerdCode,
                                   herd => herd.HerdCode,
@@ -267,7 +267,7 @@ namespace API_PCC.Controllers
                                    combined => combined.herd.Center,
                                    center => center.Id,
                                    (combined, center) => new { combined.animal, center })
-                             .Where(result => result.center.Id.ToString().Contains(searchFilter.centerid))
+                             .Where(result => result.center.Id== searchFilter.centerid)
                              .Select(result => result.animal);
 
             if (!searchFilter.userid.IsNullOrEmpty())
@@ -344,7 +344,7 @@ namespace API_PCC.Controllers
                                animal.AnimalIdNumber.Contains(searchFilter.searchValue) ||
                                animal.AnimalName.Contains(searchFilter.searchValue));
 
-            if (!searchFilter.centerid.IsNullOrEmpty()) {
+            if (searchFilter.centerid != 0) {
                 query = query.Where(animal =>
                                animal.HerdCode.Equals("test01"));
             }
