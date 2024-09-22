@@ -136,7 +136,27 @@ namespace API_PCC.Manager
 
         #endregion
 
-
+        public string BreedCode(string id)
+        {
+            string tbl = $@"SELECT  Breed_Code FROM A_Breed where id='" + id + "'";
+            DataTable breedcode = db.SelectDb(tbl).Tables[0];
+            string result = breedcode.Rows.Count != 0 ? breedcode.Rows[0]["Breed_Code"].ToString() : "";
+            return result;
+        }
+        public string BirthType(string id)
+        {
+            string tbl1 = $@"SELECT  Birth_Type_Code FROM A_Birth_Type where id='" + id + "'";
+            DataTable btype = db.SelectDb(tbl1).Tables[0];
+            string result = btype.Rows.Count != 0 ? btype.Rows[0]["Birth_Type_Code"].ToString() : "";
+            return result;
+        }
+        public string BloodCode(string id)
+        {
+            string tbl2 = $@"SELECT  Blood_Code FROM A_Blood_Comp where id='" + id + "'";
+            DataTable bcode = db.SelectDb(tbl2).Tables[0];
+            string result = bcode.Rows.Count != 0 ? bcode.Rows[0]["Blood_Code"].ToString() : "";
+            return result;
+        }
         public string InsertAuditTrail(string actions, string datecreated, string module, string userid, string read)
         {
             string Insert = $@"INSERT INTO [dbo].[tbl_audittrail]
