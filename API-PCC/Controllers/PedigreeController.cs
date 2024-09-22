@@ -633,9 +633,9 @@ namespace API_PCC.Controllers
                     s_item.Id = sirelist.sireId;
                     s_item.level = 1;
                     var animal_blood_details0 = _context.ABloodComps.Where(b => b.Id == animal_details0.BloodCode).FirstOrDefault();
-                    item.breedCode = dbmet.BreedCode(animal_details0.BreedCode);
-                    item.bloodResult = animal_details0.BloodResult.ToString();
-                    item.bloodComp = animal_blood_details0.BloodDesc.ToString();
+                    s_item.breedCode = dbmet.BreedCode(animal_details0.BreedCode);
+                    s_item.bloodResult = animal_details0.BloodResult.ToString();
+                    s_item.bloodComp = animal_blood_details0.BloodDesc.ToString();
 
                     //------------------------------------------- level1 sire 
                     var s_item1 = new parentsirelv1();
@@ -655,9 +655,9 @@ namespace API_PCC.Controllers
                         s_item1.animalId = animal_details1.AnimalIdNumber;
                         s_item1.level = 2;
                         var animal_blood_details1 = _context.ABloodComps.Where(b => b.Id == animal_details1.BloodCode).FirstOrDefault();
-                        item.breedCode = dbmet.BreedCode(animal_details1.BreedCode);
-                        item.bloodResult = animal_details1.BloodResult.ToString();
-                        item.bloodComp = animal_blood_details1.BloodDesc.ToString();
+                        s_item1.breedCode = dbmet.BreedCode(animal_details1.BreedCode);
+                        s_item1.bloodResult = animal_details1.BloodResult.ToString();
+                        s_item1.bloodComp = animal_blood_details1.BloodDesc.ToString();
                         //-----------------------------------level 2 sire
                         var s_item2 = new parentsirelv2();
                         var sirelistlvl2 = dbmet.getfamily().Find(a => a.animalId == sirelistlvl1.sireId );
@@ -675,9 +675,9 @@ namespace API_PCC.Controllers
                             s_item2.animalId = animal_details2.AnimalIdNumber;
                             s_item2.level = 3;
                             var animal_blood_details2 = _context.ABloodComps.Where(b => b.Id == animal_details2.BloodCode).FirstOrDefault();
-                            item.breedCode = dbmet.BreedCode(animal_details2.BreedCode);
-                            item.bloodResult = animal_details2.BloodResult.ToString();
-                            item.bloodComp = animal_blood_details2.BloodDesc.ToString();
+                            s_item2.breedCode = dbmet.BreedCode(animal_details2.BreedCode);
+                            s_item2.bloodResult = animal_details2.BloodResult.ToString();
+                            s_item2.bloodComp = animal_blood_details2.BloodDesc.ToString();
                             //------------------------------------ lvel 3 sire
                             var s_item3 = new parentsirelv3();
                             var sirelistlvl3 = dbmet.getfamily().Find(a => a.animalId == sirelistlvl2.sireId );
@@ -695,9 +695,9 @@ namespace API_PCC.Controllers
                                 s_item3.Id = sirelistlvl3.animalId;
                                 s_item3.level = 4;
                                 var animal_blood_details3 = _context.ABloodComps.Where(b => b.Id == animal_details3.BloodCode).FirstOrDefault();
-                                item.breedCode = dbmet.BreedCode(animal_details3.BreedCode);
-                                item.bloodResult = animal_details3.BloodResult.ToString();
-                                item.bloodComp = animal_blood_details3.BloodDesc.ToString();
+                                s_item3.breedCode = dbmet.BreedCode(animal_details3.BreedCode);
+                                s_item3.bloodResult = animal_details3.BloodResult.ToString();
+                                s_item3.bloodComp = animal_blood_details3.BloodDesc.ToString();
                                 //parentsirelv2.Add(s_item2);
 
                             }
@@ -721,9 +721,9 @@ namespace API_PCC.Controllers
                                     d_item3.Id = sirelistlvl3.animalId;
                                     d_item3.level = 4;
                                     var animal_blood_details4 = _context.ABloodComps.Where(b => b.Id == animal_details4.BloodCode).FirstOrDefault();
-                                    item.breedCode = dbmet.BreedCode(animal_details4.BreedCode);
-                                    item.bloodResult = animal_details4.BloodResult.ToString();
-                                    item.bloodComp = animal_blood_details4.BloodDesc.ToString();
+                                    d_item3.breedCode = dbmet.BreedCode(animal_details4.BreedCode);
+                                    d_item3.bloodResult = animal_details4.BloodResult.ToString();
+                                    d_item3.bloodComp = animal_blood_details4.BloodDesc.ToString();
                                     //parentdamlv3.Add(d_item3);
                                 }
                             }
@@ -754,9 +754,9 @@ namespace API_PCC.Controllers
                                 d_item2.Id = damlistlvl2.animalId;
                                 d_item2.level = 3;
                                 var animal_blood_dam2 = _context.ABloodComps.Where(b => b.Id == animal_details_dam2.BloodCode).FirstOrDefault();
-                                item.breedCode = dbmet.BreedCode(animal_details_dam2.BreedCode);
-                                item.bloodResult = animal_details_dam2.BloodResult.ToString();
-                                item.bloodComp = animal_blood_dam2.BloodDesc.ToString();
+                                d_item2.breedCode = dbmet.BreedCode(animal_details_dam2.BreedCode);
+                                d_item2.bloodResult = animal_details_dam2.BloodResult.ToString();
+                                d_item2.bloodComp = animal_blood_dam2.BloodDesc.ToString();
                                 //parentdamlv2.Add(d_item2);
                             }
 
@@ -784,9 +784,9 @@ namespace API_PCC.Controllers
                         d_item1.animalId = animal_details_dam1.AnimalIdNumber;
                         d_item1.level = 2;
                         var animal_blood_dam1 = _context.ABloodComps.Where(b => b.Id == animal_details_dam1.BloodCode).FirstOrDefault();
-                        item.breedCode = dbmet.BreedCode(animal_details_dam1.BreedCode);
-                        item.bloodResult = animal_details_dam1.BloodResult.ToString();
-                        item.bloodComp = animal_blood_dam1.BloodDesc.ToString();
+                        d_item1.breedCode = dbmet.BreedCode(animal_details_dam1.BreedCode);
+                        d_item1.bloodResult = animal_details_dam1.BloodResult.ToString();
+                        d_item1.bloodComp = animal_blood_dam1.BloodDesc.ToString();
                         var s_item2 = new parentsirelv2();
                         var sirelistlvl2 = dbmet.getfamily().Find(a => a.animalId == damlistlvl1.sireId ); 
                         if (sirelistlvl2 != null)
@@ -803,9 +803,9 @@ namespace API_PCC.Controllers
                             s_item2.animalId = animal_details2.AnimalIdNumber;
                             s_item2.level = 3;
                             var animal_blood_details2 = _context.ABloodComps.Where(b => b.Id == animal_details2.BloodCode).FirstOrDefault();
-                            item.breedCode = dbmet.BreedCode(animal_details2.BreedCode);
-                            item.bloodResult = animal_details2.BloodResult.ToString();
-                            item.bloodComp = animal_blood_details2.BloodDesc.ToString();
+                            s_item2.breedCode = dbmet.BreedCode(animal_details2.BreedCode);
+                            s_item2.bloodResult = animal_details2.BloodResult.ToString();
+                            s_item2.bloodComp = animal_blood_details2.BloodDesc.ToString();
                             //parentsirelv2.Add(s_item2);
 
                         }
@@ -826,9 +826,9 @@ namespace API_PCC.Controllers
                                 d_item2.animalId = animal_details_dam2.AnimalIdNumber;
                                 d_item2.level = 3;
                                 var animal_blood_dam2 = _context.ABloodComps.Where(b => b.Id == animal_details_dam2.BloodCode).FirstOrDefault();
-                                item.breedCode = dbmet.BreedCode(animal_details_dam2.BreedCode);
-                                item.bloodResult = animal_details_dam2.BloodResult.ToString();
-                                item.bloodComp = animal_blood_dam2.BloodDesc.ToString();
+                                d_item2.breedCode = dbmet.BreedCode(animal_details_dam2.BreedCode);
+                                d_item2.bloodResult = animal_details_dam2.BloodResult.ToString();
+                                d_item2.bloodComp = animal_blood_dam2.BloodDesc.ToString();
                                 //parentdamlv2.Add(d_item2);
                             }
                         }
@@ -863,9 +863,9 @@ namespace API_PCC.Controllers
                     //d_item.damId = damlist.damId;
                     d_item.level = 1;
                     var animal_blood_dam0 = _context.ABloodComps.Where(b => b.Id == animal_details_dam0.BloodCode).FirstOrDefault();
-                    item.breedCode = dbmet.BreedCode(animal_details_dam0.BreedCode);
-                    item.bloodResult = animal_details_dam0.BloodResult.ToString();
-                    item.bloodComp = animal_blood_dam0.BloodDesc.ToString();
+                    d_item.breedCode = dbmet.BreedCode(animal_details_dam0.BreedCode);
+                    d_item.bloodResult = animal_details_dam0.BloodResult.ToString();
+                    d_item.bloodComp = animal_blood_dam0.BloodDesc.ToString();
                     //------------------------------------------- level1 sire 
                     var s_item1 = new parentsirelv1();
                     var sirelistlvl1 = dbmet.getfamily().Find(a => a.animalId == damlist.sireId    );
@@ -883,9 +883,9 @@ namespace API_PCC.Controllers
                         s_item1.animalId = animal_details_sire1.AnimalIdNumber;
                         s_item1.level = 2;
                         var animal_blood_sire1 = _context.ABloodComps.Where(b => b.Id == animal_details_sire1.BloodCode).FirstOrDefault();
-                        item.breedCode = dbmet.BreedCode(animal_details_sire1.BreedCode);
-                        item.bloodResult = animal_details_sire1.BloodResult.ToString();
-                        item.bloodComp = animal_blood_sire1.BloodDesc.ToString();
+                        s_item1.breedCode = dbmet.BreedCode(animal_details_sire1.BreedCode);
+                        s_item1.bloodResult = animal_details_sire1.BloodResult.ToString();
+                        s_item1.bloodComp = animal_blood_sire1.BloodDesc.ToString();
                         //-----------------------------------level 2 sire
                         var s_item2 = new parentsirelv2();
                         var sirelistlvl2 = dbmet.getfamily().Find(a => a.animalId == sirelistlvl1.sireId);
@@ -904,9 +904,9 @@ namespace API_PCC.Controllers
                             s_item2.animalId =animal_details_sire2.AnimalIdNumber;
                             s_item2.level = 3;
                             var animal_blood_sire2 = _context.ABloodComps.Where(b => b.Id == animal_details_sire2.BloodCode).FirstOrDefault();
-                            item.breedCode = dbmet.BreedCode(animal_details_sire2.BreedCode);
-                            item.bloodResult = animal_details_sire2.BloodResult.ToString();
-                            item.bloodComp = animal_blood_sire2.BloodDesc.ToString();
+                            s_item2.breedCode = dbmet.BreedCode(animal_details_sire2.BreedCode);
+                            s_item2.bloodResult = animal_details_sire2.BloodResult.ToString();
+                            s_item2.bloodComp = animal_blood_sire2.BloodDesc.ToString();
                             //------------------------------------ lvel 3 sire
                             var s_item3 = new parentsirelv3();
                             var sirelistlvl3 = dbmet.getfamily().Find(a => a.animalId == sirelistlvl2.sireId);
@@ -925,9 +925,9 @@ namespace API_PCC.Controllers
                                 s_item3.animalId =animal_details_sire3.AnimalIdNumber;
                                 s_item3.level = 4;
                                 var animal_blood_sire3 = _context.ABloodComps.Where(b => b.Id == animal_details_sire3.BloodCode).FirstOrDefault();
-                                item.breedCode = dbmet.BreedCode(animal_details_sire3.BreedCode);
-                                item.bloodResult = animal_details_sire3.BloodResult.ToString();
-                                item.bloodComp = animal_blood_sire3.BloodDesc.ToString();
+                                s_item3.breedCode = dbmet.BreedCode(animal_details_sire3.BreedCode);
+                                s_item3.bloodResult = animal_details_sire3.BloodResult.ToString();
+                                s_item3.bloodComp = animal_blood_sire3.BloodDesc.ToString();
                                 //parentsirelv2.Add(s_item2);
 
                             }
@@ -951,9 +951,9 @@ namespace API_PCC.Controllers
                                     d_item3.animalId =animal_details_dam3.AnimalIdNumber;
                                     d_item3.level = 4;
                                     var animal_blood_dam3 = _context.ABloodComps.Where(b => b.Id == animal_details_dam3.BloodCode).FirstOrDefault();
-                                    item.breedCode = dbmet.BreedCode(animal_details_dam3.BreedCode);
-                                    item.bloodResult = animal_details_dam3.BloodResult.ToString();
-                                    item.bloodComp = animal_blood_dam3.BloodDesc.ToString();
+                                    d_item3.breedCode = dbmet.BreedCode(animal_details_dam3.BreedCode);
+                                    d_item3.bloodResult = animal_details_dam3.BloodResult.ToString();
+                                    d_item3.bloodComp = animal_blood_dam3.BloodDesc.ToString();
                                     //parentdamlv3.Add(d_item3);
                                 }
                             }
@@ -986,9 +986,9 @@ namespace API_PCC.Controllers
                                 d_item2.animalId = animal_details_dam2.AnimalIdNumber;
                                 d_item2.level = 3;
                                 var animal_blood_dam2 = _context.ABloodComps.Where(b => b.Id == animal_details_dam2.BloodCode).FirstOrDefault();
-                                item.breedCode = dbmet.BreedCode(animal_details_dam2.BreedCode);
-                                item.bloodResult = animal_details_dam2.BloodResult.ToString();
-                                item.bloodComp = animal_blood_dam2.BloodDesc.ToString();
+                                d_item2.breedCode = dbmet.BreedCode(animal_details_dam2.BreedCode);
+                                d_item2.bloodResult = animal_details_dam2.BloodResult.ToString();
+                                d_item2.bloodComp = animal_blood_dam2.BloodDesc.ToString();
                                 //parentdamlv2.Add(d_item2);
                             }
 
@@ -1038,9 +1038,9 @@ namespace API_PCC.Controllers
                             s_item2.animalId = animal_details_sire1.AnimalIdNumber;
                             s_item2.level = 3;
                             var animal_blood_sire1 = _context.ABloodComps.Where(b => b.Id == animal_details_sire1.BloodCode).FirstOrDefault();
-                            item.breedCode = dbmet.BreedCode(animal_details_sire1.BreedCode);
-                            item.bloodResult = animal_details_sire1.BloodResult.ToString();
-                            item.bloodComp = animal_blood_sire1.BloodDesc.ToString();
+                            s_item2.breedCode = dbmet.BreedCode(animal_details_sire1.BreedCode);
+                            s_item2.bloodResult = animal_details_sire1.BloodResult.ToString();
+                            s_item2.bloodComp = animal_blood_sire1.BloodDesc.ToString();
 
                         }
                         var d_item2 = new parentdamlv2();
@@ -1061,9 +1061,9 @@ namespace API_PCC.Controllers
                                 d_item2.animalId = animal_details_sire2.AnimalIdNumber;
                                 d_item2.level = 3;
                                 var animal_blood_sire2 = _context.ABloodComps.Where(b => b.Id == animal_details_sire2.BloodCode).FirstOrDefault();
-                                item.breedCode = dbmet.BreedCode(animal_details_sire2.BreedCode);
-                                item.bloodResult = animal_details_sire2.BloodResult.ToString();
-                                item.bloodComp = animal_blood_sire2.BloodDesc.ToString();
+                                d_item2.breedCode = dbmet.BreedCode(animal_details_sire2.BreedCode);
+                                d_item2.bloodResult = animal_details_sire2.BloodResult.ToString();
+                                d_item2.bloodComp = animal_blood_sire2.BloodDesc.ToString();
                             }
                         }
 
