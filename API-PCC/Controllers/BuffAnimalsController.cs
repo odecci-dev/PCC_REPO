@@ -1542,6 +1542,22 @@ namespace API_PCC.Controllers
 
         private ABuffAnimal buildBuffAnimal(BuffAnimalRegistrationModel registrationModel)
         {
+            string _dateDiff = registrationModel.DateOfBirth.HasValue
+                        ? ((registrationModel.DateOfBirth.Value - new DateTime(1899, 12, 30)).Days).ToString()
+                        : "0";
+
+            string _animalIdNumber = registrationModel.AnimalIdNumber;
+
+            string _sex = registrationModel.Sex.Substring(0, 1).ToUpper();
+
+
+            string? _breedCode = _context.ABreeds
+                                .Where(b => b.Id.ToString().Equals(registrationModel.BreedCode))
+                                .Select(b => b.BreedCode)
+                                .FirstOrDefault();
+
+            string BreedRegistryNumber = _animalIdNumber + _dateDiff + _sex + _breedCode;
+
             var buffAnimal = new ABuffAnimal()
             {
                 AnimalIdNumber = registrationModel.AnimalIdNumber,
@@ -1557,9 +1573,11 @@ namespace API_PCC.Controllers
                 DateOfAcquisition = registrationModel.DateOfAcquisition,
                 Marking = registrationModel.Marking,
                 TypeOfOwnership = registrationModel.TypeOfOwnership,
-                BloodCode = registrationModel.BloodCode
-                // To be calculated BloodCode = registrationModel.BloodCode
+                BloodCode = registrationModel.BloodCode,
+
+                breedRegistryNumber = BreedRegistryNumber
             };
+
             return buffAnimal;
         }
 
