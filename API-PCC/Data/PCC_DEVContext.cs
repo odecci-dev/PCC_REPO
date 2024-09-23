@@ -367,8 +367,8 @@ public partial class PCC_DEVContext : DbContext
                 .HasColumnType("date")
                 .HasColumnName("Date_Restored");
             entity.Property(e => e.breedRegistryNumber)
-                .HasColumnName("BreedRegistryNumber")
-         .ValueGeneratedOnAddOrUpdate();
+                .IsUnicode(false)
+                .HasColumnName("BreedRegistryNumber");
         });
 
         modelBuilder.Entity<ATypeOwnership>(entity =>

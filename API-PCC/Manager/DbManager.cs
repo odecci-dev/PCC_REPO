@@ -32,6 +32,7 @@ namespace API_PCC.Manager
         // cnnstr = "Data Source=DESKTOP-9P0BJ07;Initial Catalog=PCC_SIT;User ID=pcc-server;Password=pccdev1234!"; //Odecci Server
         // cnnstr = "Data Source=DESKTOP-9P0BJ07;Initial Catalog=PCC_DEV;User ID=pcc-server;Password=pccdev1234!"; //Odecci Server
          //cnnstr = "Data Source=DESKTOP-0SN0AHC;Initial Catalog=PCC_DEV;User ID=pcc-server;Password=pccdev1234!"; //Odecci pc 
+         cnnstr = "Server=(localdb)\\mssqllocaldb;Database=PCC_SIT;Trusted_Connection=True;"; // brandon loacl db
             conn = new SqlConnection(cnnstr);
         }
         public DataSet SelectDb(string value)
