@@ -512,6 +512,7 @@ namespace API_PCC.Controllers
         [HttpPost]
         public async Task<ActionResult<HBuffHerd>> Import(List<BuffHerdRegistrationModel> registrationModel)
         {
+            List<HBuffHerd> listOfImportedHerd = new List<HBuffHerd>();
 
             try
             {
@@ -641,8 +642,8 @@ namespace API_PCC.Controllers
                
                 status = "Herd successfully registered!";
                 dbmet.InsertAuditTrail("Save Buffalo Herd" + " " + status, DateTime.Now.ToString("yyyy-MM-dd"), "Herd Module", registrationModel[0].CreatedBy, "0");
-
-                return Ok(status);
+                return CreatedAtAction("Import", registrationModel);
+                //return Ok(status);
             }
             catch (Exception ex)
             {
