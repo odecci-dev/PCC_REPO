@@ -37,7 +37,6 @@ public partial class ABuffAnimal
     public DateTime? DateRestored { get; set; }
     public string? RestoredBy { get; set; }
     public decimal? BloodResult { get; set; }
-    [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
     public string? breedRegistryNumber { get; set; }
    
 }
