@@ -826,6 +826,9 @@ namespace API_PCC.Controllers
         public async Task<ActionResult<ABuffAnimal>> import(List<BuffAnimalRegistrationModel> buffAnimalRegistrationModel)
         {
 
+            //added list of imported animals
+            List<ABuffAnimal> listOfImportedAnimal = new List<ABuffAnimal>();
+
             string filePath = @"C:\data\savebuffanimal.json"; // Replace with your desired file path
             try
             {
@@ -951,6 +954,9 @@ namespace API_PCC.Controllers
                         var lastInsertedId = entry.Property(e => e.Id).CurrentValue;
                         dbmet.InsertAuditTrail("Save New BuffAnimal ID: " + lastInsertedId + "", DateTime.Now.ToString("yyyy-MM-dd"), "Animal Module", buffAnimal.CreatedBy, "0");
 
+                        //added list of imported animals
+                        listOfImportedAnimal.Add(savedEntity);
+
                     }
                     catch (BadHttpRequestException ex)
                     {
@@ -961,7 +967,8 @@ namespace API_PCC.Controllers
                         return Problem(ex.GetBaseException().ToString());
                     }
                 }
-                return Ok("Import Successfully");
+                //added list of imported animals
+                return CreatedAtAction("import", listOfImportedAnimal);
             }
             catch (BadHttpRequestException ex)
             {

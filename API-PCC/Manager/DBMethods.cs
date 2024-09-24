@@ -700,11 +700,11 @@ FROM            tbl_UserTypeModel INNER JOIN
                          tbl_UsersModel.Date_Created, tbl_UsersModel.Date_Updated, tbl_UsersModel.Delete_Flag, tbl_UsersModel.Created_By, tbl_UsersModel.Updated_By, tbl_UsersModel.Date_Deleted, tbl_UsersModel.Deleted_By, 
                          tbl_UsersModel.Date_Restored, tbl_UsersModel.Restored_By, tbl_UsersModel.CenterId, tbl_UsersModel.AgreementStatus, tbl_UsersModel.RememberToken, tbl_UsersModel.UserType, tbl_UserTypeModel.code, 
                          tbl_UserTypeModel.name, tbl_StatusModel.Status AS StatusName, tbl_CenterModel.CenterName,isFarmer
-FROM            tbl_UsersModel INNER JOIN
+                    FROM            tbl_UsersModel INNER JOIN
                          tbl_UserTypeModel ON tbl_UsersModel.UserType = tbl_UserTypeModel.id INNER JOIN
                          tbl_StatusModel ON tbl_UsersModel.Status = tbl_StatusModel.id INNER JOIN
                          tbl_CenterModel ON tbl_UsersModel.CenterId = tbl_CenterModel.id
-WHERE        (tbl_UsersModel.Delete_Flag = 0)";
+                    WHERE        (tbl_UsersModel.Delete_Flag = 0)";
             var result = new List<TblUsersModel_List>();
             DataTable table = db.SelectDb(sqls).Tables[0];
 
@@ -975,6 +975,8 @@ WHERE        (tbl_UsersModel.Delete_Flag = 0)";
         {
             var result = new List<TblUsersModel>();
             bool compr_user = false;
+            bool _isFarmer = false;
+            int? _center = null;
             if (username.Length != 0 || password.Length != 0)
             {
                 var param = new IDataParameter[]
@@ -987,7 +989,15 @@ WHERE        (tbl_UsersModel.Delete_Flag = 0)";
                 {
                     string user_statId = dt.Rows[0]["StatusId"].ToString();
                     string user_activeId = dt.Rows[0]["ActiveStatusId"].ToString();
-                    if (user_activeId == "1")
+                    bool user_deleteFlag = Convert.ToBoolean(dt.Rows[0]["Delete_Flag"]);
+                    if (user_deleteFlag)
+                    {
+                        Id = dt.Rows[0]["Id"].ToString();
+                        Stats = "Error";
+                        Mess = "Invalid Log In";
+                        JWT = "";
+                    }
+                    else if (user_activeId == "1")
                     {
                         //active
                         switch (user_statId)
@@ -1021,6 +1031,9 @@ WHERE        (tbl_UsersModel.Delete_Flag = 0)";
                                         Random random = new Random();
                                         int length = 8;
                                         char letter;
+
+                                        _isFarmer = Convert.ToBoolean(dt.Rows[0]["isFarmer"]);
+                                        _center = (int)dt.Rows[0]["CenterId"];
 
                                         for (int i = 0; i < length; i++)
                                         {
@@ -1141,6 +1154,8 @@ WHERE        (tbl_UsersModel.Delete_Flag = 0)";
                 Id = Id,
                 Status = Stats,
                 Message = Mess,
+                isFarmer = _isFarmer,
+                Center = _center,
                 JwtToken = JWT
             };
             return results;

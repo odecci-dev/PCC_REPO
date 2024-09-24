@@ -198,21 +198,39 @@ namespace API_PCC.Controllers
             var userModel = (dynamic)null;
             int usertype = 0;
             var loginstats = dbmet.GetUserLogIn(data.username, data.password, data.ipaddress, data.location);
+            var item = new StatusReturns();
+
             if (!data.rememberToken.IsNullOrEmpty())
             {
                 userModel = dbmet.getUserList().Where(userModel => userModel.Username == data.username).FirstOrDefault();
+                
+                if (userModel == null) {
+
+                    item.Status = loginstats.Status;
+                    item.Message = loginstats.Message;
+                    item.JwtToken = loginstats.JwtToken;
+                    item.Id = loginstats.Id;
+                    item.isFarmer = loginstats.isFarmer;
+                    item.Center = loginstats.Center;
+
+                    return Ok(item);
+
+                    //return NotFound("User not found");
+                }
+
                 usertype = int.Parse(userModel.UserType);
+
                 //userModel.RememberToken = data.rememberToken;
                 //_context.Entry(userModel).State = EntityState.Modified;
 
                 //await _context.SaveChangesAsync();
+
                 string tbl_UsersModel_update = $@"UPDATE [dbo].[tbl_UsersModel] SET 
                                              [FirstName] = '" + data.rememberToken + "'" +
                                         " WHERE id = '" + userModel.Id + "'";
                 string result = db.DB_WithParam(tbl_UsersModel_update);
             }
             //var res = dbmet.UserTypeParams(usertype).FirstOrDefault();
-            var item = new StatusReturns();
             item.Status = loginstats.Status;
             item.Message = loginstats.Message;
             item.JwtToken = loginstats.JwtToken;
