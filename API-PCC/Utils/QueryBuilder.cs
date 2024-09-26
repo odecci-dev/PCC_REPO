@@ -70,7 +70,7 @@ namespace API_PCC.Utils
         }
         public static String buildHerdSelectForRestoreQuery()
         {
-            return Constants.DBQuery.HERD_SELECT + "WHERE H_Buff_Herd.DELETE_FLAG = 1 AND AND H_Buff_Herd.ID = @Id";
+            return Constants.DBQuery.HERD_SELECT + "WHERE H_Buff_Herd.DELETE_FLAG = 1 AND  H_Buff_Herd.ID = @Id";
         }
         public static String buildHerdDuplicateCheckSaveQuery()
         {

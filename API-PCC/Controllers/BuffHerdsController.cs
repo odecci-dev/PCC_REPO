@@ -866,26 +866,26 @@ namespace API_PCC.Controllers
 
             if (buffHerdDuplicateCheck.Rows.Count > 0)
             {
-                return Conflict("Entity already exists!!");
-            }
+                try
+                {
+                    herdModel.DeleteFlag = !herdModel.DeleteFlag;
+                    herdModel.DateDeleted = null;
+                    herdModel.DeletedBy = "";
+                    herdModel.DateRestored = DateTime.Now;
+                    herdModel.RestoredBy = restorationModel.restoredBy;
 
-            try
-            {
-                herdModel.DeleteFlag = !herdModel.DeleteFlag;
-                herdModel.DateDeleted = null;
-                herdModel.DeletedBy = "";
-                herdModel.DateRestored = DateTime.Now;
-                herdModel.RestoredBy = restorationModel.restoredBy;
+                    _context.Entry(herdModel).State = EntityState.Modified;
+                    await _context.SaveChangesAsync();
+                    
+                }
+                catch (Exception ex)
+                {
 
-                _context.Entry(herdModel).State = EntityState.Modified;
-                await _context.SaveChangesAsync();
-                return Ok("Restoration Successful!");
+                    return Problem(ex.GetBaseException().ToString());
+                }
             }
-            catch (Exception ex)
-            {
+            return Ok("Restoration Successful!");
 
-                return Problem(ex.GetBaseException().ToString());
-            }
         }
 
         //[HttpPost]
