@@ -15,6 +15,7 @@ using System;
 using System.Data;
 using System.Data.SqlClient;
 using System.Text;
+using System.Text.Json;
 using static API_PCC.Controllers.UserController;
 using static API_PCC.Manager.DBMethods;
 //using static API_PCC.Manager.DBMethods;
@@ -299,6 +300,8 @@ namespace API_PCC.Controllers
         {
             try
             {
+                string filePath = @"C:\data\savemodule.json"; // Replace with your desired file path
+                dbmet.insertlgos(filePath, JsonSerializer.Serialize(data));
                 string sql = $@"SELECT [Id]
                   FROM [dbo].[tbl_UserTypeModel] where Id='" + data.UserTypeId + "'";
 
