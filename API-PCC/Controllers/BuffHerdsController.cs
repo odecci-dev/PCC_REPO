@@ -643,7 +643,7 @@ namespace API_PCC.Controllers
                
                 status = "Herd successfully registered!";
                 dbmet.InsertAuditTrail("Save Buffalo Herd" + " " + status, DateTime.Now.ToString("yyyy-MM-dd"), "Herd Module", registrationModel[0].CreatedBy, "0");
-                return CreatedAtAction("Import", registrationModel);
+                return CreatedAtAction("Import", status + registrationModel.Count + " Records");
                 //return Ok(status);
             }
             catch (Exception ex)

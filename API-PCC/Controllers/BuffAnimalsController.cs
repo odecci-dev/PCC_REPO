@@ -644,9 +644,6 @@ namespace API_PCC.Controllers
         {
 
             string filePath = @"C:\data\savebuffanimal.json"; // Replace with your desired file path
-
-
-
             dbmet.insertlgos(filePath, JsonSerializer.Serialize(buffAnimalRegistrationModel));
 
 
