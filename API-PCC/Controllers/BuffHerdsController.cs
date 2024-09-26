@@ -518,10 +518,11 @@ namespace API_PCC.Controllers
             {
 
 
-                string filePath = @"C:\data\herdsave.json"; // Replace with your desired file path
-                dbmet.insertlgos(filePath, JsonSerializer.Serialize(registrationModel));
+               
                 for(int x= 0;x < registrationModel.Count; x++)
                 {
+                    string filePath = @"C:\data\herdsave.json"; // Replace with your desired file path
+                    dbmet.insertlgos(filePath, JsonSerializer.Serialize(registrationModel[x]));
                     DataTable buffHerdDuplicateCheck = db.SelectDb_WithParamAndSorting(QueryBuilder.buildHerdDuplicateCheckSaveQuery(), null, populateSqlParameters(registrationModel[x].HerdName, registrationModel[x].HerdCode));
 
                     if (buffHerdDuplicateCheck.Rows.Count > 0)
