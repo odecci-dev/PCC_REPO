@@ -12,6 +12,7 @@ using Microsoft.IdentityModel.Tokens;
 using NuGet.Protocol.Core.Types;
 using System.Data;
 using System.Data.SqlClient;
+using static API_PCC.Controllers.BuffAnimalsController;
 
 namespace API_PCC.Controllers
 {
@@ -32,7 +33,7 @@ namespace API_PCC.Controllers
             bool isArchive = false;
             try
             {
-                List<TransferModel> transferList = await buildTransferModelSearchQueryv2(isArchive).ToListAsync();
+                List<TransferModel> transferList = await buildTransferModelSearchQueryv1(isArchive).ToListAsync();
 
                 var result = buildTransferPagedModelv2(transferList);
                 return Ok(result);
@@ -118,22 +119,23 @@ namespace API_PCC.Controllers
             return Ok(status);
         }
         [HttpPost]
-        public async Task<ActionResult<IEnumerable<TransferModel>>> TransferArchive()
+        public async Task<ActionResult<IEnumerable<TransferModel>>> TransferArchive(animalsearchfilter searchFilter)
         {
             bool isArchive = true;
             try
             {
-                List<TransferModel> transferList = await buildTransferModelSearchQueryv2(isArchive).ToListAsync();
+                List<TransferModel> transferList = await buildTransferModelSearchQueryv2(isArchive, searchFilter).ToListAsync();
 
                 var result = buildTransferPagedModelv2(transferList);
                 return Ok(result);
+            
             }
             catch (Exception ex)
             {
                 return Problem(ex.GetBaseException().ToString());
             }
         }
-        private IQueryable<TransferModel> buildTransferModelSearchQueryv2(bool isArchive)
+        private IQueryable<TransferModel> buildTransferModelSearchQueryv2(bool isArchive , animalsearchfilter searchFilter)
         {
             IQueryable<TransferModel> query = _context.TransferModels;
 
@@ -143,11 +145,28 @@ namespace API_PCC.Controllers
             query = query
                 .Include(transferModel => transferModel.Animal)
                 .Include(transferModel => transferModel.Owner);
+            if (!searchFilter.searchParam.IsNullOrEmpty())
+                query = query.Where(animal =>
+                               animal.transferNumber.Contains(searchFilter.searchParam));
 
 
             return query;
         }
+        private IQueryable<TransferModel> buildTransferModelSearchQueryv1(bool isArchive)
+        {
+            IQueryable<TransferModel> query = _context.TransferModels;
 
+            if (isArchive)
+                query = query.Where(transfer => transfer.DeleteFlag);
+
+            query = query
+                .Include(transferModel => transferModel.Animal)
+                .Include(transferModel => transferModel.Owner);
+         
+
+
+            return query;
+        }
         // POST: BirthTypes/list
         [HttpPost]
         public async Task<ActionResult<IEnumerable<TransferModel>>> list(CommonSearchFilterModel searchFilter)
@@ -571,6 +590,7 @@ namespace API_PCC.Controllers
             {
                 var transferResponseModel = new TransferResponseModel()
                 {
+                    Id = transferModel.Id,
                     transferNumber = transferModel.transferNumber,
                     BreedRegistrationNumber = transferModel.Animal.breedRegistryNumber,
                     AnimalIdNumber = transferModel.Animal.AnimalIdNumber,

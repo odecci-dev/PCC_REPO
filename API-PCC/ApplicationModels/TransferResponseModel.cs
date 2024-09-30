@@ -5,6 +5,7 @@ namespace API_PCC.ApplicationModels
 {
     public class TransferResponseModel
     {
+        public int Id { get; set; }
         public string transferNumber { get; set; }
         public string BreedRegistrationNumber { get; set; }
         public string AnimalIdNumber { get; set; }
