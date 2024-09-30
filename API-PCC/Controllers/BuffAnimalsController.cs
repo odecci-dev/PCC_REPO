@@ -103,10 +103,10 @@ namespace API_PCC.Controllers
                 {
                     buffanimal = buffanimal.Where(a =>
                  a.Sex.ToUpper() == searchFilter.Sex.ToUpper()
-                 && a.Animal_ID_Number == searchFilter.searchParam
-                 || a.Animal_Name == searchFilter.searchParam
-                 || a.BreedRegistryNumber == searchFilter.searchParam.ToUpper()
-                 || a.RFID_Number == searchFilter.searchParam).ToList();
+                 && a.Animal_ID_Number.ToUpper().Contains(searchFilter.searchParam.ToUpper())
+                 || a.Animal_Name.ToUpper().Contains(searchFilter.searchParam.ToUpper())
+                 || a.BreedRegistryNumber.ToUpper().Contains(searchFilter.searchParam.ToUpper())
+                 || a.RFID_Number.ToUpper().Contains(searchFilter.searchParam)).ToList();
                 }
                 else if (searchFilter.Sex != null && searchFilter.Sex != "")
                 {
@@ -115,10 +115,10 @@ namespace API_PCC.Controllers
                 else if (searchFilter.searchParam != null && searchFilter.searchParam != "")
                 {
                     buffanimal = buffanimal.Where(a =>
-                             a.Animal_ID_Number.Contains(searchFilter.searchParam)
-                             || a.Animal_Name.Contains(searchFilter.searchParam)
-                             || a.BreedRegistryNumber.ToUpper().Contains(searchFilter.searchParam.ToUpper())
-                             || a.RFID_Number.Contains(searchFilter.searchParam)).ToList();
+                             a.Animal_ID_Number.ToUpper().Contains(searchFilter.searchParam.ToUpper())
+                 || a.Animal_Name.ToUpper().Contains(searchFilter.searchParam.ToUpper())
+                 || a.BreedRegistryNumber.ToUpper().Contains(searchFilter.searchParam.ToUpper())
+                 || a.RFID_Number.ToUpper().Contains(searchFilter.searchParam)).ToList();
 
 
                 }
@@ -644,9 +644,6 @@ namespace API_PCC.Controllers
         {
 
             string filePath = @"C:\data\savebuffanimal.json"; // Replace with your desired file path
-
-
-
             dbmet.insertlgos(filePath, JsonSerializer.Serialize(buffAnimalRegistrationModel));
 
 

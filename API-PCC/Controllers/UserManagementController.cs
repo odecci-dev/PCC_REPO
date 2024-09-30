@@ -127,7 +127,7 @@ namespace API_PCC.Controllers
                                     User_UserTypeAccessTable inner join
                                     Action_tbl on Action_tbl.Action_Id = User_UserTypeAccessTable.ActionId
 
-                                     where Module ='" + dr1["ModuleId"].ToString() + "'";
+                                     where Module ='" + dr1["ModuleId"].ToString() + "' and  User_UserTypeAccessTable.UserTypeId = '"+ usertypeid + "'";
                         DataTable action_tbl = db.SelectDb(sql_actions).Tables[0];
                         var action_item = new List<ActionModel>();
                         foreach (DataRow dra in action_tbl.Rows)
@@ -324,7 +324,15 @@ namespace API_PCC.Controllers
 
                     for (int x = 0; x < data.Module.Count; x++)
                     {
-                        for (int i = 0; i < data.Module[x].Actions.Count; i++)
+                        string sql_select_module = $@"SELECT [Id]
+                                                  ,[Module]
+                                                  ,[ParentModule]
+                                                  ,[DateCreated]
+                                              FROM [dbo].[User_ModuleTable]
+                                             where Id='" + data.Module[x].ModuleId + "'";
+
+                        DataTable sql_select_moduletable1 = db.SelectDb(sql_select_module).Tables[0];
+                        if (sql_select_moduletable1.Rows[0]["ParentModule"].ToString() == "0")
                         {
                             string inseruseraccessmodule = $@"INSERT INTO [dbo].[User_UserTypeAccessTable]
                                                                ([UserTypeId]
@@ -334,10 +342,28 @@ namespace API_PCC.Controllers
                                                                 VALUES
                                                 ('" + data.UserTypeId + "'" +
                               ",'" + data.Module[x].ModuleId + "'," +
-                              "'" + data.Module[x].Actions[i].ActionId + "'," +
+                              "''," +
                               "'" + DateTime.Now.ToString("yyyy-MM-dd") + "')";
                             string test = db.DB_WithParam(inseruseraccessmodule);
                         }
+                        else
+                        {
+                            for (int i = 0; i < data.Module[x].Actions.Count; i++)
+                            {
+                                string inseruseraccessmodule = $@"INSERT INTO [dbo].[User_UserTypeAccessTable]
+                                                               ([UserTypeId]
+                                                               ,[Module]
+                                                               ,[ActionId]
+                                                               ,[DateCreated])
+                                                                VALUES
+                                                ('" + data.UserTypeId + "'" +
+                                  ",'" + data.Module[x].ModuleId + "'," +
+                                  "'" + data.Module[x].Actions[i].ActionId + "'," +
+                                  "'" + DateTime.Now.ToString("yyyy-MM-dd") + "')";
+                                string test = db.DB_WithParam(inseruseraccessmodule);
+                            }
+                        }
+                     
                     }
                 }
                 //var entry = _context.Entry(userType);
