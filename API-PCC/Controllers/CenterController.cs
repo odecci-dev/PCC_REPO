@@ -236,42 +236,117 @@ namespace API_PCC.Controllers
                 return Problem(ex.GetBaseException().ToString());
             }
         }
+
+        //center import details model
+        public class CenterImportDetailsModel
+        {
+            public int Id { get; set; }
+
+            public string? CenterName { get; set; }
+
+            public string? CenterDesc { get; set; }
+            public string? CenterCode { get; set; }
+            public string? Address { get; set; }
+            public string? ContactPerson { get; set; }
+            public string? MobileNumber { get; set; }
+            public string? TelNumber { get; set; }
+            public string? Email { get; set; }
+            //public string? StatusName { get; set; }
+            public int? Status { get; set; }
+            //public int? StatusId { get; set; }
+            public string? CreatedBy { get; set; }
+        }
+
         [HttpPost]
-        public async Task<ActionResult<TblCenterModel>> import(List<TblCenterModel> tblCenterModel)
+        public async Task<ActionResult> import(List<CenterImportDetailsModel> centerImportDetails)
         {
             if (_context.TblCenterModels == null)
             {
-                return Problem("Entity set 'PCC_DEVContext.Feeding Sytem' is null!");
+                return Problem("Entity set 'PCC_DEVContext.TblCenterModels' is null!");
             }
-            for(int x= 0; x < tblCenterModel.Count;x++)
-            {
-                bool hasDuplicateOnSave = (_context.TblCenterModels?.Any(fs => !fs.DeleteFlag && fs.CenterName == tblCenterModel[x].CenterName && fs.CenterDesc == tblCenterModel[x].CenterDesc)).GetValueOrDefault();
 
-                if (hasDuplicateOnSave)
+            foreach (var center in centerImportDetails)
+            {
+                bool hasDuplicate = _context.TblCenterModels
+                    .Any(fs => !fs.DeleteFlag && fs.CenterName == center.CenterName && fs.CenterDesc == center.CenterDesc);
+
+                if (hasDuplicate)
                 {
-                    return Conflict("Entity already exists");
+                    return Conflict($"Entity with CenterName '{center.CenterName}' and CenterDesc '{center.CenterDesc}' already exists.");
                 }
 
                 try
                 {
-                    _context.TblCenterModels.Add(tblCenterModel[x]);
-                    var entry = _context.Entry(tblCenterModel[x]);
-                    var lastInsertedId = entry.Property(e => e.Id).CurrentValue;
-                    dbmet.InsertAuditTrail("Save New Center ID: " + lastInsertedId + "", DateTime.Now.ToString("yyyy-MM-dd"), "Center Module", tblCenterModel[x].CreatedBy, "0");
+                    var newCenter = new TblCenterModel
+                    {
+                        CenterName = center.CenterName,
+                        CenterDesc = center.CenterDesc,
+                        CenterCode = center.CenterCode,
+                        Address = center.Address,
+                        ContactPerson = center.ContactPerson,
+                        MobileNumber = center.MobileNumber,
+                        TelNumber = center.TelNumber,
+                        Email = center.Email,
+                        Status = center.Status,
+                        CreatedBy = center.CreatedBy,
+                        DateCreated = DateTime.Now
+                    };
+
+                    _context.TblCenterModels.Add(newCenter);
                     await _context.SaveChangesAsync();
 
-                    return CreatedAtAction("save", new { id = tblCenterModel[x].Id }, tblCenterModel);
+                    dbmet.InsertAuditTrail($"Save New Center ID: {newCenter.Id}",
+                        DateTime.Now.ToString("yyyy-MM-dd"),
+                        "Center Module",
+                        center.CreatedBy,
+                        "0");
                 }
                 catch (Exception ex)
                 {
-
                     return Problem(ex.GetBaseException().ToString());
                 }
-
             }
-            return Ok();
-            
+
+            return Ok("Import process completed successfully.");
         }
+
+
+        //[HttpPost]
+        //public async Task<ActionResult<TblCenterModel>> import(List<CenterImportDetailsModel> tblCenterModel)
+        //{
+        //    if (_context.TblCenterModels == null)
+        //    {
+        //        return Problem("Entity set 'PCC_DEVContext.Feeding Sytem' is null!");
+        //    }
+        //    for(int x= 0; x < tblCenterModel.Count;x++)
+        //    {
+        //        bool hasDuplicateOnSave = (_context.TblCenterModels?.Any(fs => !fs.DeleteFlag && fs.CenterName == tblCenterModel[x].CenterName && fs.CenterDesc == tblCenterModel[x].CenterDesc)).GetValueOrDefault();
+
+        //        if (hasDuplicateOnSave)
+        //        {
+        //            return Conflict("Entity already exists");
+        //        }
+
+        //        try
+        //        {
+        //            _context.TblCenterModels.Add(tblCenterModel[x]);
+        //            var entry = _context.Entry(tblCenterModel[x]);
+        //            var lastInsertedId = entry.Property(e => e.Id).CurrentValue;
+        //            dbmet.InsertAuditTrail("Save New Center ID: " + lastInsertedId + "", DateTime.Now.ToString("yyyy-MM-dd"), "Center Module", tblCenterModel[x].CreatedBy, "0");
+        //            await _context.SaveChangesAsync();
+
+        //            return CreatedAtAction("save", new { id = tblCenterModel[x].Id }, tblCenterModel);
+        //        }
+        //        catch (Exception ex)
+        //        {
+
+        //            return Problem(ex.GetBaseException().ToString());
+        //        }
+
+        //    }
+        //    return Ok();
+
+        //}
 
         // DELETE: Center/delete/5
         [HttpPost]
