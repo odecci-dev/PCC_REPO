@@ -364,7 +364,7 @@ namespace API_PCC.Controllers
             animalDetails.Rfid = animal_details.RfidNumber;
             animalDetails.Sex = animal_details.Sex;
             animalDetails.Breed = str_breedcode;
-            animalDetails.BloodComposition = str_bcode;
+            animalDetails.BloodComp = str_bcode;
             animalDetails.BloodResult = animal_details.BloodResult.ToString();
             animalDetails.DateOfBirth = animal_details.DateOfBirth;
             animalDetails.CountryOfBirth = animal_details.CountryOfBirth;
@@ -376,7 +376,9 @@ namespace API_PCC.Controllers
                 animalDetails.OriginOfAcquisition = originOfAcquisition;
             }
             animalDetails.DateOfAcquisition = animal_details.DateOfAcquisition;
-            animalDetails.TypeOfOWnership = animal_details.TypeOfOwnership;
+
+            var typeOwnership = _context.ATypeOwnerships.FirstOrDefault(t => t.TypeOwnCode == animal_details.TypeOfOwnership);
+            animalDetails.TypeOfOWnership = typeOwnership.TypeOwnDesc;
 
 
             var herdDetails = new HerdDetails();
@@ -394,7 +396,8 @@ namespace API_PCC.Controllers
                 {
                     foreach (HBuffaloType buffaloType in buffHerd.buffaloType)
                     {
-                        buffaloTypeList.Add(buffaloType.BreedTypeCode);
+                        //buffaloTypeList.Add(buffaloType.BreedTypeCode);
+                        buffaloTypeList.Add(buffaloType.BreedTypeDesc);
                     }
                     herdDetails.TypeOfBuffalo = string.Join(",", buffaloTypeList);
 
@@ -403,7 +406,8 @@ namespace API_PCC.Controllers
                 {
                     foreach (HFeedingSystem feedingSystem in buffHerd.feedingSystem)
                     {
-                        feedingSystemList.Add(feedingSystem.FeedingSystemCode);
+                        //feedingSystemList.Add(feedingSystem.FeedingSystemCode);
+                        feedingSystemList.Add(feedingSystem.FeedingSystemDesc);
                     }
                     herdDetails.FeedingSystem = string.Join(",", feedingSystemList);
                 }
@@ -595,7 +599,7 @@ namespace API_PCC.Controllers
 
             return null;
         }
-            private childlv0 generatepedigree(int id)
+        private childlv0 generatepedigree(int id)
         {
             var animal = dbmet.getfamily().Where(a => a.animalId == id).ToList();
 
