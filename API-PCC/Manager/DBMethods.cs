@@ -145,9 +145,10 @@ namespace API_PCC.Manager
         }
         public string BirthType(string id)
         {
-            string tbl1 = $@"SELECT  Birth_Type_Code FROM A_Birth_Type where id='" + id + "'";
+            //string tbl1 = $@"SELECT  Birth_Type_Code FROM A_Birth_Type where id='" + id + "'";
+            string tbl1 = $@"SELECT  Birth_Type_Desc FROM A_Birth_Type where Birth_Type_Code = '" + id + "'";
             DataTable btype = db.SelectDb(tbl1).Tables[0];
-            string result = btype.Rows.Count != 0 ? btype.Rows[0]["Birth_Type_Code"].ToString() : "";
+            string result = btype.Rows.Count != 0 ? btype.Rows[0]["Birth_Type_Desc"].ToString() : "";
             return result;
         }
         public string BloodCode(string id)
@@ -863,7 +864,6 @@ FROM            tbl_UserTypeModel INNER JOIN
         }
         public List<TblUsersModel_List> getUserList_list(String username, String password)
         {
-
             string sqls = $@"SELECT     tbl_UsersModel.Id, tbl_UsersModel.Username, tbl_UsersModel.Password, tbl_UsersModel.Fullname, tbl_UsersModel.Fname, tbl_UsersModel.Lname, tbl_UsersModel.Mname, tbl_UsersModel.Email, 
                          tbl_UsersModel.Gender, tbl_UsersModel.EmployeeID, tbl_UsersModel.JWToken, tbl_UsersModel.FilePath, tbl_UsersModel.Active, tbl_UsersModel.Cno, tbl_UsersModel.Address, tbl_UsersModel.Status, 
                          tbl_UsersModel.Date_Created, tbl_UsersModel.Date_Updated, tbl_UsersModel.Delete_Flag, tbl_UsersModel.Created_By, tbl_UsersModel.Updated_By, tbl_UsersModel.Date_Deleted, tbl_UsersModel.Deleted_By, 
@@ -874,8 +874,30 @@ FROM            tbl_UserTypeModel INNER JOIN
                          tbl_StatusModel ON tbl_UsersModel.Status = tbl_StatusModel.id INNER JOIN
                          tbl_CenterModel ON tbl_UsersModel.CenterId = tbl_CenterModel.id
                         WHERE        (tbl_UsersModel.Delete_Flag = 0) and tbl_UsersModel.Username ='" + username + "' and tbl_UsersModel.Password='" + Cryptography.Encrypt(password) + "'";
+
+            string sqls2 = $@"SELECT     tbl_UsersModel.Id, tbl_UsersModel.Username, tbl_UsersModel.Password, tbl_UsersModel.Fullname, tbl_UsersModel.Fname, tbl_UsersModel.Lname, tbl_UsersModel.Mname, tbl_UsersModel.Email, 
+                         tbl_UsersModel.Gender, tbl_UsersModel.EmployeeID, tbl_UsersModel.JWToken, tbl_UsersModel.FilePath, tbl_UsersModel.Active, tbl_UsersModel.Cno, tbl_UsersModel.Address, tbl_UsersModel.Status, 
+                         tbl_UsersModel.Date_Created, tbl_UsersModel.Date_Updated, tbl_UsersModel.Delete_Flag, tbl_UsersModel.Created_By, tbl_UsersModel.Updated_By, tbl_UsersModel.Date_Deleted, tbl_UsersModel.Deleted_By, 
+                         tbl_UsersModel.Date_Restored, tbl_UsersModel.Restored_By, tbl_UsersModel.CenterId, tbl_UsersModel.AgreementStatus, tbl_UsersModel.RememberToken, tbl_UsersModel.UserType, tbl_UserTypeModel.code, 
+                         tbl_UserTypeModel.name, tbl_StatusModel.Status AS StatusName, tbl_UserTypeModel.userAccesasId, tbl_UsersModel.isFarmer
+                        FROM            tbl_UsersModel INNER JOIN
+                         tbl_UserTypeModel ON tbl_UsersModel.UserType = tbl_UserTypeModel.id INNER JOIN
+                         tbl_StatusModel ON tbl_UsersModel.Status = tbl_StatusModel.id 
+						 WHERE tbl_UsersModel.Delete_Flag = 0 AND tbl_UsersModel.CenterId = 0 and tbl_UsersModel.Username ='" + username + "' and tbl_UsersModel.Password='" + Cryptography.Encrypt(password) + "'";
+
             var result = new List<TblUsersModel_List>();
-            DataTable table = db.SelectDb(sqls).Tables[0];
+            //DataTable table = db.SelectDb(sqls).Tables[0];
+            DataTable table = new DataTable();
+
+            DataTable userInfo = db.SelectDb(sqls2).Tables[0];
+            if (userInfo.Rows.Count != 0)
+            {
+                table = userInfo;
+            }
+            else
+            {
+                table = db.SelectDb(sqls).Tables[0];
+            }
 
             foreach (DataRow dr in table.Rows)
             {
@@ -907,7 +929,8 @@ FROM            tbl_UserTypeModel INNER JOIN
                 item.DateRestored = dr["Date_Restored"].ToString();
                 item.RestoredBy = dr["Restored_By"].ToString();
                 item.CenterId = int.Parse(dr["CenterId"].ToString());
-                item.CenterName = dr["CenterName"].ToString();
+                //item.CenterName = dr["CenterName"].ToString();
+                item.CenterName = item.CenterId == 0 ? "ALL CENTER" : dr["CenterName"].ToString();
                 item.AgreementStatus = bool.Parse(dr["AgreementStatus"].ToString());
                 item.RememberToken = dr["RememberToken"].ToString();
                 item.UserType = dr["UserType"].ToString();
