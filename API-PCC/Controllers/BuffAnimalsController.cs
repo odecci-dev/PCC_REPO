@@ -927,6 +927,7 @@ namespace API_PCC.Controllers
                             }
                         }
 
+
                         var savedEntity = _context.ABuffAnimals.Add(buffAnimal).Entity;
 
                         await _context.SaveChangesAsync();
@@ -1546,6 +1547,7 @@ namespace API_PCC.Controllers
 
         private ABuffAnimal buildBuffAnimal(BuffAnimalRegistrationModel registrationModel)
         {
+
             string _dateDiff = registrationModel.DateOfBirth.HasValue
                         ? ((registrationModel.DateOfBirth.Value - new DateTime(1899, 12, 30)).Days).ToString()
                         : "0";
@@ -1579,7 +1581,7 @@ namespace API_PCC.Controllers
                 TypeOfOwnership = registrationModel.TypeOfOwnership,
                 BloodCode = registrationModel.BloodCode,
 
-                breedRegistryNumber = BreedRegistryNumber
+                breedRegistryNumber = string.IsNullOrEmpty(registrationModel.breedRegistryNumber) ? BreedRegistryNumber : registrationModel.breedRegistryNumber
             };
 
             return buffAnimal;

@@ -706,6 +706,8 @@ FROM            tbl_UserTypeModel INNER JOIN
                          tbl_StatusModel ON tbl_UsersModel.Status = tbl_StatusModel.id INNER JOIN
                          tbl_CenterModel ON tbl_UsersModel.CenterId = tbl_CenterModel.id
                     WHERE        (tbl_UsersModel.Delete_Flag = 0)";
+
+
             var result = new List<TblUsersModel_List>();
             DataTable table = db.SelectDb(sqls).Tables[0];
 
@@ -741,7 +743,7 @@ FROM            tbl_UserTypeModel INNER JOIN
                 item.DateRestored = dr["Date_Restored"].ToString();
                 item.RestoredBy = dr["Restored_By"].ToString();
                 item.CenterId = int.Parse(dr["CenterId"].ToString());
-                item.CenterName = dr["CenterName"].ToString();
+                item.CenterName = item.CenterId == 0 ? "ALL CENTER" : dr["CenterName"].ToString();
                 item.AgreementStatus = bool.Parse(dr["AgreementStatus"].ToString());
                 item.RememberToken = dr["RememberToken"].ToString();
                 item.UserType = dr["UserType"].ToString();
@@ -790,7 +792,7 @@ FROM            tbl_UserTypeModel INNER JOIN
                         item1.ModuleName = dr1["ModuleName"].ToString();
                         item1.ParentModule = dr1["ParentModule"].ToString();
                         item1.DateCreated = dr1["DateCreated"].ToString();
-                        string sql_actions = $@"select 
+                        string sql_actions = $@"select distinct
                                     Action_Id,
                                     Action_tbl.Action_name,
                                     User_UserTypeAccessTable.Module
