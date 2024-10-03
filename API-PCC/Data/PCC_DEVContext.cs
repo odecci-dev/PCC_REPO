@@ -50,6 +50,7 @@ public partial class PCC_DEVContext : DbContext
 
     public virtual DbSet<TblRegistrationOtpmodel> TblRegistrationOtpmodels { get; set; }
 
+    public virtual DbSet<TblSettings> TblSettings { get; set; }
     public virtual DbSet<TblStatusModel> TblStatusModels { get; set; }
 
     public virtual DbSet<TblUsersModel> TblUsersModels { get; set; }
@@ -873,6 +874,73 @@ public partial class PCC_DEVContext : DbContext
             entity.Property(e => e.Status)
                 .IsUnicode(false)
                 .HasColumnName("Status");
+        });
+
+        modelBuilder.Entity<TblSettings>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__tbl.Sett__3214EC07B89991C2");
+
+            entity.ToTable("tbl_Settings");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.Address)
+                .IsRequired()
+                .IsUnicode(false);
+            entity.Property(e => e.BreedRegistryNumberLength)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("Breed_Registry_Number_Length");
+            entity.Property(e => e.BusinessName)
+                .IsRequired()
+                .IsUnicode(false)
+                .HasColumnName("Business_Name");
+            entity.Property(e => e.ContactNumber)
+                .IsRequired()
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasColumnName("Contact_Number");
+            entity.Property(e => e.DateUpdated)
+                .HasColumnType("datetime")
+                .HasColumnName("Date_Updated");
+            entity.Property(e => e.Email)
+                .IsRequired()
+                .HasMaxLength(250)
+                .IsUnicode(false);
+            entity.Property(e => e.HerdCodeLength)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("Herd_Code_Length");
+            entity.Property(e => e.IdNumberLength)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("ID_Number_Length");
+            entity.Property(e => e.PedigreeCertSignatoryFirstName)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("Pedigree_Cert_Signatory_FirstName");
+            entity.Property(e => e.PedigreeCertSignatoryLastName)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("Pedigree_Cert_Signatory_LastName");
+            entity.Property(e => e.PedigreeCertSignatorySignature)
+                .IsUnicode(false)
+                .HasColumnName("Pedigree_Cert_Signatory_Signature");
+            entity.Property(e => e.PedigreeSignatoryFirstName)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("Pedigree_Signatory_FirstName");
+            entity.Property(e => e.PedigreeSignatoryLastName)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("Pedigree_Signatory_LastName");
+            entity.Property(e => e.PedigreeSignatorySignature)
+                .IsUnicode(false)
+                .HasColumnName("Pedigree_Signatory_Signature");
+            entity.Property(e => e.UpdatedBy)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("Updated_By");
+            entity.Property(e => e.Watermark).IsUnicode(false);
         });
 
         modelBuilder.Entity<TblStatusModel>(entity =>
