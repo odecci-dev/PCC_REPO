@@ -30,7 +30,7 @@ namespace API_PCC.Controllers
 
         // POST: farmOwners/list
         [HttpPost]
-        public async Task<ActionResult<IEnumerable<TblFarmOwner>>> list(FarmOwnerSearchFilterModel searchFilter)
+        public async Task<ActionResult<IEnumerable<TblFarmers>>> list(FarmOwnerSearchFilterModel searchFilter)
         {
             searchFilter.searchParam = StringSanitizer.sanitizeString(searchFilter.searchParam);
             try
@@ -94,14 +94,14 @@ namespace API_PCC.Controllers
             return sqlParameters.ToArray();
         }
 
-        private List<TblFarmOwner> convertDataRowListToFarmOwnerList(List<DataRow> dataRowList)
+        private List<TblFarmers> convertDataRowListToFarmOwnerList(List<DataRow> dataRowList)
         {
-            var farmOwnerList = new List<TblFarmOwner>();
+            var farmOwnerList = new List<TblFarmers>();
 
           
                 foreach (DataRow dataRow in dataRowList)
                 {
-                    var herdModel = DataRowToObject.ToObject<TblFarmOwner>(dataRow);
+                    var herdModel = DataRowToObject.ToObject<TblFarmers>(dataRow);
                     farmOwnerList.Add(herdModel);
                 }
             
@@ -113,26 +113,26 @@ namespace API_PCC.Controllers
         // PUT: farmOwners/update/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> update(int id, TblFarmOwner TblFarmOwner)
+        public async Task<IActionResult> update(int id, TblFarmers TblFarmers)
         {
             if (_context.TblFarmOwners == null)
             {
                 return Problem("Entity set 'PCC_DEVContext.TblFarmOwners' is null!");
             }
 
-            var farmOwner = _context.TblFarmOwners.AsNoTracking().Where(farmOwner => farmOwner.Id == id).FirstOrDefault();
+            var farmOwner = _context.Tbl_Farmers.AsNoTracking().Where(farmOwner => farmOwner.Id == id).FirstOrDefault();
 
             if (farmOwner == null)
             {
                 return Conflict("No records matched!");
             }
 
-            if (id != TblFarmOwner.Id)
+            if (id != TblFarmers.Id)
             {
                 return Conflict("Ids mismatched!");
             }
 
-            bool hasDuplicateOnUpdate = (_context.TblFarmOwners?.Any(farmOwner => farmOwner.FirstName == TblFarmOwner.FirstName && farmOwner.LastName == TblFarmOwner.LastName && farmOwner.Id != id)).GetValueOrDefault();
+            bool hasDuplicateOnUpdate = (_context.Tbl_Farmers?.Any(farmOwner => farmOwner.FirstName == TblFarmers.FirstName && farmOwner.LastName == TblFarmers.LastName && farmOwner.Id != id)).GetValueOrDefault();
 
             // check for duplication
             if (hasDuplicateOnUpdate)
@@ -142,7 +142,7 @@ namespace API_PCC.Controllers
 
             try
             {
-                _context.Entry(TblFarmOwner).State = EntityState.Modified;
+                _context.Entry(TblFarmers).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
 
                 return Ok("Update Successful!");
@@ -157,20 +157,20 @@ namespace API_PCC.Controllers
         // POST: farmOwners/save
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<TblFarmOwner>> save(TblFarmOwner TblFarmOwner)
+        public async Task<ActionResult<TblFarmers>> save(TblFarmers TblFarmers)
         {
             if (_context.TblFarmOwners == null)
             {
                 return Problem("Entity set 'PCC_DEVContext.TblFarmOwners' is null!");
             }
 
-            bool hasDuplicateOnSave = (_context.TblFarmOwners?.Any(farmOwner => farmOwner.FirstName == TblFarmOwner.FirstName && farmOwner.LastName == TblFarmOwner.LastName)).GetValueOrDefault();
+            bool hasDuplicateOnSave = (_context.Tbl_Farmers?.Any(farmOwner => farmOwner.FirstName == TblFarmers.FirstName && farmOwner.LastName == TblFarmers.LastName)).GetValueOrDefault();
 
             if (hasDuplicateOnSave)
             {
                 return Conflict("Entity already exists");
             }
-            bool validuser = (_context.TblUsersModels?.Any(farmOwner => farmOwner.Fname == TblFarmOwner.FirstName && farmOwner.Lname == TblFarmOwner.LastName && farmOwner.Address == TblFarmOwner.Address)).GetValueOrDefault();
+            bool validuser = (_context.TblUsersModels?.Any(farmOwner => farmOwner.Fname == TblFarmers.FirstName && farmOwner.Lname == TblFarmers.LastName && farmOwner.Address == TblFarmers.Address)).GetValueOrDefault();
 
             if (validuser)
             {
@@ -178,10 +178,10 @@ namespace API_PCC.Controllers
             }
             try
             {
-                _context.TblFarmOwners.Add(TblFarmOwner);
+                _context.Tbl_Farmers.Add(TblFarmers);
                 await _context.SaveChangesAsync();
 
-                return CreatedAtAction("save", new { id = TblFarmOwner.Id }, TblFarmOwner);
+                return CreatedAtAction("save", new { id = TblFarmers.Id }, TblFarmers);
             }
             catch (Exception ex)
             {
