@@ -6,7 +6,7 @@ namespace API_PCC.ApplicationModels
 {
     public class FarmOwnerPagedModel : PaginationModel
     {
-        public List<TblFarmOwner> items { get; set; }
+        public List<TblFarmers> items { get; set; }
 
     }
 }
