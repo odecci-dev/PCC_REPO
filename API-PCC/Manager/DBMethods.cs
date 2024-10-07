@@ -12,6 +12,7 @@ using System.Data.SqlClient;
 using System.Runtime.ConstrainedExecution;
 using System.Text;
 using static API_PCC.Controllers.BloodCompsController;
+using static API_PCC.Controllers.BreedRegistryHerdController;
 using static API_PCC.Controllers.BuffAnimalsController;
 using static API_PCC.Controllers.PedigreeController;
 using static API_PCC.Controllers.UserController;
@@ -690,6 +691,55 @@ FROM            tbl_UserTypeModel INNER JOIN
                 item.dam.AnimalName = dr["Animal_Name"].ToString();
                 item.dam.DateOfBirth = Convert.ToDateTime(dr["Date_of_Birth"].ToString());
                 item.dam.CountryOfBirth = dr["Country_Of_Birth"].ToString();
+                result.Add(item);
+            }
+            return result;
+        }
+        public class ListFarmerVM
+        {
+            public int? Id { get; set; }
+            public string HerdId { get; set; }
+            public string FarmerId { get; set; }
+            public string FarmerName { get; set; }
+            public string BreedType { get; set; }
+            public string FeedingType { get; set; }
+            public string FarmerClassification { get; set; }
+            public string FarmerAffiliation { get; set; }
+            public string CowLevel { get; set; }
+        }
+        public List<ListFarmerVM> FarmerListView()
+        {
+
+            string sql = $@"SELECT  tbl_HerdFarmer.Farmer_Id, tbl_HerdFarmer.Herd_Id, tbl_HerdFarmer.Id, Tbl_Farmers.FirstName, Tbl_Farmers.LastName, H_Feeding_System.FeedingSystemDesc, A_Breed.Breed_Desc, 
+                         PCC_adjusted.dbo.H_Herd_Classification.Herd_Class_Desc, PCC_adjusted.dbo.H_Farmer_Affiliation.F_Desc, PCC_adjusted.dbo.H_Buff_Herd.Herd_Code
+FROM            PCC_adjusted.dbo.H_Buff_Herd INNER JOIN
+                         tbl_HerdFarmer ON PCC_adjusted.dbo.H_Buff_Herd.id = tbl_HerdFarmer.Herd_Id LEFT OUTER JOIN
+                         tbl_FarmerBreedType INNER JOIN
+                         Tbl_Farmers ON tbl_FarmerBreedType.Farmer_Id = Tbl_Farmers.Id INNER JOIN
+                         A_Breed ON tbl_FarmerBreedType.BreedType_Id = A_Breed.id INNER JOIN
+                         PCC_adjusted.dbo.H_Herd_Classification ON Tbl_Farmers.FarmerClassification_Id = PCC_adjusted.dbo.H_Herd_Classification.id INNER JOIN
+                         PCC_adjusted.dbo.H_Farmer_Affiliation ON Tbl_Farmers.FarmerAffliation_Id = PCC_adjusted.dbo.H_Farmer_Affiliation.id ON tbl_HerdFarmer.Farmer_Id = Tbl_Farmers.Id LEFT OUTER JOIN
+                         tbl_FarmerFeedingSystem ON Tbl_Farmers.Id = tbl_FarmerFeedingSystem.Farmer_Id LEFT OUTER JOIN
+                         H_Feeding_System ON tbl_FarmerFeedingSystem.FeedingSystem_Id = H_Feeding_System.id";
+            var result = new List<ListFarmerVM>();
+            DataTable table = db.SelectDb(sql).Tables[0];
+
+            foreach (DataRow dr in table.Rows)
+            {
+                string sql_cowlvl = $@"select Count(*) as Cowlevel from A_Buff_Animal where Herd_Code ='"+ dr["Herd_Code"].ToString() + "'";
+             
+                DataTable table_cowlvl = db.SelectDb(sql_cowlvl).Tables[0];
+
+                var item = new ListFarmerVM();
+                item.Id = int.Parse(dr["Id"].ToString());
+                item.HerdId = dr["Herd_Id"].ToString();
+                item.FarmerId = dr["Farmer_Id"].ToString();
+                item.FarmerName = dr["LastName"].ToString() + ", "+ dr["FirstName"].ToString();
+                item.BreedType = dr["Breed_Desc"].ToString();
+                item.FeedingType = dr["FeedingSystemDesc"].ToString();
+                item.FarmerClassification = dr["Herd_Class_Desc"].ToString();
+                item.FarmerAffiliation = dr["F_Desc"].ToString();
+                item.CowLevel = table_cowlvl.Rows[0]["Cowlevel"].ToString();
                 result.Add(item);
             }
             return result;

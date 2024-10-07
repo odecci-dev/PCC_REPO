@@ -15,6 +15,6 @@
 
         public DateTime? DeletedAt { get; set; }
 
-        public short? IsDeleted { get; set; }
+        public bool IsDeleted { get; set; }
     }
 }
