@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace API_PCC.EntityModels;
+namespace API_PCC.Models;
 
 public partial class ABuffAnimal
 {
@@ -45,7 +45,7 @@ public partial class ABuffAnimal
 
     public int? DamId { get; set; }
 
-    public bool DeleteFlag { get; set; }
+    public bool? DeleteFlag { get; set; }
 
     public string Status { get; set; }
 
@@ -65,9 +65,7 @@ public partial class ABuffAnimal
 
     public string RestoredBy { get; set; }
 
-    public string breedRegistryNumber { get; set; }
+    public string BreedRegistryNumber { get; set; }
 
-    public double? Blood_Comp { get; set; }
-    public int? FarmerId { get; set; }
-    public int? GroupId { get; set; }
+    public double? BloodComp { get; set; }
 }
