@@ -27,7 +27,7 @@ namespace API_PCC.Controllers
     [Authorize("ApiKey")]
     [Route("[controller]/[action]")]
     [ApiController]
-    public class HerdFarmerController : ControllerBase
+    public class BreedRegistryHerdController : ControllerBase
     {
         private readonly PCC_DEVContext _context;
         DbManager db = new DbManager();
@@ -41,7 +41,7 @@ namespace API_PCC.Controllers
             public int pageSize { get; set; }
         }
 
-        public HerdFarmerController(PCC_DEVContext context)
+        public BreedRegistryHerdController(PCC_DEVContext context)
         {
             _context = context;
         }
@@ -223,6 +223,131 @@ namespace API_PCC.Controllers
             {
                 return Problem(ex.GetBaseException().ToString());
             }
+        }
+        [HttpPost]
+        public async Task<IActionResult> FarmerList(string FarmerId)
+        {
+
+            var result = (dynamic)null;
+            if (FarmerId != "")
+            {
+                result = dbmet.FarmerListView().Where(a=>a.FarmerId == FarmerId).ToList();
+                if(result.Count != 0)
+                {
+                    return Ok(result);
+                }
+                else
+                {
+                    return Ok("No Record Found");
+                }
+             
+            }
+            else
+            {
+
+                return Ok("No Record Found");
+            }
+
+        }
+        public class FarmerSaveModel
+        {
+            public int HerdId { get; set; }
+            public int FarmerId { get; set; }
+            public int FeedingSystemId { get; set; }
+            public int BreedTypeId { get; set; }
+            public int UserId { get; set; }
+
+        }
+        [HttpPost]
+        public async Task<IActionResult> FarmerSave(FarmerSaveModel model)
+        {
+            string Insert = "";
+            string isfarmer = $@"select * from tbl_Farmers where User_Id ='" + model.UserId + "'";
+
+            DataTable tbl_isfarmer = db.SelectDb(isfarmer).Tables[0];
+            if(tbl_isfarmer.Rows.Count != 0)
+            {
+                return BadRequest("User is already a Farmer");
+            }
+            else
+            {
+                string isHerd = $@"select * from H_Buff_Herd where Id ='" + model.HerdId + "'";
+
+                DataTable tbl_isHerd = db.SelectDb(isHerd).Tables[0];
+                if(tbl_isHerd.Rows.Count == 0)
+                {
+                    return BadRequest("Herd Id does not Exist");
+                }
+                else
+                {
+                    Insert += $@"
+                   INSERT INTO [dbo].[tbl_HerdFarmer]
+                               ([Herd_Id]
+                               ,[Farmer_Id]
+                               ,[Created_By]
+                               ,[Is_Deleted]
+                               ,[Created_At])
+                         VALUES
+                           ('" + model.HerdId + "'," +
+                          "'" + model.FarmerId + "'," +
+                          "'" + model.UserId + "'," +
+                           "'0'," +
+                          "'" + DateTime.Now.ToString("yyyy-MM-dd") + "') ";
+                }
+                string isfeeding = $@"select * from H_Feeding_System where Id ='" + model.FeedingSystemId + "'";
+
+                DataTable tbl_isfeeding = db.SelectDb(isfeeding).Tables[0];
+                if (tbl_isHerd.Rows.Count == 0)
+                {
+                    return BadRequest("Feeding System Id does not Exist");
+                }
+                else
+                {
+                    Insert += $@"
+                   INSERT INTO [dbo].[tbl_FarmerFeedingSystem]
+                                   ([Farmer_Id]
+                                   ,[FeedingSystem_Id]
+                                   ,[Created_By]
+                                   ,[Is_Deleted]
+                                   ,[Created_At])
+                             VALUES
+                           ('" + model.FarmerId + "'," +
+                                               "'" + model.FeedingSystemId + "'," +
+                                               "'" + model.UserId + "'," +
+                                                "'0'," +
+                                               "'" + DateTime.Now.ToString("yyyy-MM-dd") + "') ";
+                }
+                string isbreed = $@"select * from A_Breed where Id ='" + model.BreedTypeId + "'";
+
+                DataTable tbl_isbreed = db.SelectDb(isbreed).Tables[0];
+                if (tbl_isHerd.Rows.Count == 0)
+                {
+                    return BadRequest("Feeding System Id does not Exist");
+                }
+                else
+                {
+                    Insert += $@"
+                   INSERT INTO [dbo].[tbl_FarmerBreedType]
+                               ([Farmer_Id]
+                               ,[BreedType_Id]
+                               ,[Created_By]
+                               ,[Is_Deleted]
+                               ,[Created_At])
+                            VALUES
+                           ('" + model.FarmerId + "'," +
+                                          "'" + model.BreedTypeId + "'," +
+                                          "'" + model.UserId + "'," +
+                                          "'0'," +
+                                          "'" + DateTime.Now.ToString("yyyy-MM-dd") + "') ";
+                }
+       
+
+               
+                return Ok("Successfully Saved" + db.DB_WithParam(Insert));
+            }
+          
+            
+
         }
         [HttpPost]
         public async Task<IActionResult> View(string HerdCode)
