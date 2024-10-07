@@ -19,7 +19,8 @@ FROM            H_Buff_Herd LEFT JOIN
         public static readonly String HERD_CLASSIFICATION_SELECT = $@"SELECT * FROM H_HERD_ClASSIFICATION ";
 
         public static readonly String CENTER_SELECT = $@"SELECT * FROM TBL_CENTERMODEL ";
-        public static readonly String FARM_OWNER_SELECT = $@"SELECT * FROM TBL_FARMOWNER ";
+        public static readonly String FARM_OWNER_SELECT = $@"SELECT * FROM TBL_FARMERS ";
+        //public static readonly String FARM_OWNER_SELECT = $@"SELECT * FROM TBL_FARMOWNER ";
         //public static readonly String USERS_SELECT = $@"SELECT * FROM TBL_USERSMODEL ";
         public static readonly String USERS_SELECT = $@"select * from  tbl_UsersModel";
         public static readonly String MAIL_SENDER_CREDENTIALS_SELECT = $@"SELECT * FROM TBL_MAILSENDERCREDENTIAL ";

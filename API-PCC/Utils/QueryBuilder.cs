@@ -97,15 +97,15 @@ namespace API_PCC.Utils
         }
         public static String buildFarmOwnerSearchQueryByFirstNameOrLastName(FarmOwnerSearchFilterModel searchFilterModel)
         {
-            String BuffaloType = Constants.DBQuery.FARM_OWNER_SELECT;
+            String farmer = Constants.DBQuery.FARM_OWNER_SELECT;
             //return Constants.DBQuery.FARM_OWNER_SELECT + "WHERE FirstName = @SearchParam OR LastName = @SearchParam";
 
             //String herdSelect = Constants.DBQuery.BUFFALO_TYPE_SELECT + "WHERE DELETE_FLAG = 0 ";
             if (searchFilterModel.searchParam != null && searchFilterModel.searchParam != "")
             {
-                BuffaloType = BuffaloType + "WHERE (FirstName LIKE '%' + @SearchParam + '%' OR LastName LIKE '%' + @SearchParam +'%') ";
+                farmer = farmer + "WHERE (FirstName LIKE '%' + @SearchParam + '%' OR LastName LIKE '%' + @SearchParam +'%') ";
             }
-            return BuffaloType;
+            return farmer;
         }
         public static String buildFarmOwnerSearchQueryById()
         {
