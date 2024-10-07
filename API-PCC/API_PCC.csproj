@@ -9,6 +9,32 @@
 	<ItemGroup>
 	  <Compile Remove="Controllers\TestController.cs" />
 	  <Compile Remove="Controllers\UserManagementController_.cs" />
+	  <Compile Remove="Models\ABirthType.cs" />
+	  <Compile Remove="Models\ABloodComp.cs" />
+	  <Compile Remove="Models\ABreed.cs" />
+	  <Compile Remove="Models\ABuffAnimal.cs" />
+	  <Compile Remove="Models\ActionTbl.cs" />
+	  <Compile Remove="Models\AFamily.cs" />
+	  <Compile Remove="Models\ATypeOwnership.cs" />
+	  <Compile Remove="Models\GetUserLogInResult.cs" />
+	  <Compile Remove="Models\HBuffaloType.cs" />
+	  <Compile Remove="Models\HBuffHerd.cs" />
+	  <Compile Remove="Models\HFarmerAffiliation.cs" />
+	  <Compile Remove="Models\HFeedingSystem.cs" />
+	  <Compile Remove="Models\HHerdClassification.cs" />
+	  <Compile Remove="Models\ModuleTbl.cs" />
+	  <Compile Remove="Models\TblApiTokenModel.cs" />
+	  <Compile Remove="Models\TblCenterModel.cs" />
+	  <Compile Remove="Models\TblDamModel.cs" />
+	  <Compile Remove="Models\TblJoinBuffHerd.cs" />
+	  <Compile Remove="Models\TblMailSenderCredential.cs" />
+	  <Compile Remove="Models\TblOriginOfAcquisitionModel.cs" />
+	  <Compile Remove="Models\TblRegistrationOtpmodel.cs" />
+	  <Compile Remove="Models\TblStatusModel.cs" />
+	  <Compile Remove="Models\TblTokenModel.cs" />
+	  <Compile Remove="Models\TblTransferModel.cs" />
+	  <Compile Remove="Models\TblUsersModel.cs" />
+	  <Compile Remove="Models\TblUserTypeModel.cs" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -39,6 +65,10 @@
 
 	<ItemGroup>
 		<Folder Include="Migrations\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Include="efpt.config.json.user" />
 	</ItemGroup>
 
 </Project>

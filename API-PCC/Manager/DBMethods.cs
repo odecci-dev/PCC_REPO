@@ -671,6 +671,7 @@ FROM            tbl_UserTypeModel INNER JOIN
             }
             return result;
         }
+
         public List<A_Family> getdamfamilybuff()
         {
 
