@@ -847,7 +847,7 @@ namespace API_PCC.Controllers
         private void populateUser(TblUsersModel userModel, UserUpdateModel userUpdateModel)
         {
             userModel.Username = userUpdateModel.Username;
-            userModel.Password = Cryptography.Encrypt(userUpdateModel.Password);
+            //userModel.Password = Cryptography.Encrypt(userUpdateModel.Password);
             userModel.Fullname = userUpdateModel.Fullname;
             userModel.Fname = userUpdateModel.Fname;
             userModel.Lname = userUpdateModel.Lname;
@@ -862,6 +862,7 @@ namespace API_PCC.Controllers
             userModel.AgreementStatus = userUpdateModel.AgreementStatus;
             userModel.UserType = userUpdateModel.UserType;
             userModel.isFarmer = userUpdateModel.isFarmer;
+            userModel.HerdId = userUpdateModel.herdId;
         }
 
         // POST: UserManagement/delete/5

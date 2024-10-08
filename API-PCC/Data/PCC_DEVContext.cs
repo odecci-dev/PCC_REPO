@@ -1174,6 +1174,9 @@ public partial class PCC_DEVContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("Updated_By");
             entity.Property(e => e.Username).IsUnicode(false);
+            entity.Property(e => e.HerdId)
+                .IsUnicode(false)
+                .HasColumnName("HerdId");
         });
 
         modelBuilder.Entity<UserActionTable>(entity =>
