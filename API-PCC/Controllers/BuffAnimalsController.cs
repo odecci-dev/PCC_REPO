@@ -646,8 +646,6 @@ namespace API_PCC.Controllers
             string filePath = @"C:\data\savebuffanimal.json"; // Replace with your desired file path
             dbmet.insertlgos(filePath, JsonSerializer.Serialize(buffAnimalRegistrationModel));
 
-
-
             if (_context.ABuffAnimals == null)
             {
                 return Problem("Buff Animal entity Set is null!");
