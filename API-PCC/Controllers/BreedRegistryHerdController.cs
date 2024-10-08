@@ -27,7 +27,7 @@ namespace API_PCC.Controllers
     [Authorize("ApiKey")]
     [Route("[controller]/[action]")]
     [ApiController]
-    public class HerdFarmerController : ControllerBase
+    public class BreedRegistryHerdController : ControllerBase
     {
         private readonly PCC_DEVContext _context;
         DbManager db = new DbManager();
@@ -41,11 +41,11 @@ namespace API_PCC.Controllers
             public int pageSize { get; set; }
         }
 
-        public HerdFarmerController(PCC_DEVContext context)
+        public BreedRegistryHerdController(PCC_DEVContext context)
         {
             _context = context;
         }
-   
+
         public class AuditSearch
         {
             public string? Username { get; set; }
@@ -69,6 +69,10 @@ namespace API_PCC.Controllers
             public int? FarmerId { get; set; }
             public int CenterId { get; set; }
             public string HerdName { get; set; }
+            public string FarmAddress { get; set; }
+            public string Photo { get; set; }
+            public string CreatedBy { get; set; }
+            public string DateCreated { get; set; }
             public string HerdCode { get; set; }
             public string HerdClassification { get; set; }
             public DateTime? DateofApplication { get; set; }
@@ -95,6 +99,7 @@ namespace API_PCC.Controllers
         {
             public string Breed_Desc { get; set; }
         }
+     
         public class BreedRegistryHerd
         {
             public int HerdId { get; set; }
@@ -103,6 +108,10 @@ namespace API_PCC.Controllers
             public string HerdCode { get; set; }
             public DateTime? DateofApplication { get; set; }
             public string FarmerName { get; set; }
+            public string FarmAddress { get; set; }
+            public string Photo { get; set; }
+            public string CreatedBy { get; set; }
+            public string DateCreated { get; set; }
             public string CowLevel { get; set; }
             public string FarmManager { get; set; }
         }
@@ -144,6 +153,10 @@ namespace API_PCC.Controllers
                               HerdId = b != null ? b.Id : 0,
                               HerdCode = b != null ? b.HerdCode : "Unknown Code",
                               HerdName = b != null ? b.HerdName : "Unknown Herd",
+                              FarmAddress = b != null ? b.FarmAddress : "Unknown FarmAddress",
+                              Photo = b != null ? b.Photo : "Unknown FarmAddress",
+                              CreatedBy = b != null ? b.CreatedBy : "Unknown FarmAddress",
+                              DateCreated = b != null ? b.DateCreated.ToString("yyyy-MM-dd") : "Unknown FarmAddress",
                               DateofApplication = b != null ? b.DateCreated : DateTime.MinValue,
                               FarmerName = (g != null ? g.Lname : "Unknown") + ", " + (g != null ? g.Fname : "Unknown"),
                               FarmerId = e != null ? e.Id : 0,
@@ -159,6 +172,10 @@ namespace API_PCC.Controllers
                 HerdCode = r.HerdCode,
                 DateofApplication = r.DateofApplication,
                 FarmerName = r.FarmerName,
+                FarmAddress = r.FarmAddress,
+                Photo = r.Photo,
+                DateCreated = r.DateCreated,
+                CreatedBy = r.CreatedBy,
                 FarmerId = r.FarmerId,
                 CowLevel = r.CowLevel,
                 FarmManager = r.FarmManager
@@ -211,7 +228,7 @@ namespace API_PCC.Controllers
             }
         }
         [HttpPost]
-        public async Task<IActionResult> Search( FarmerHerdSearch searchFilter)
+        public async Task<IActionResult> Search(FarmerHerdSearch searchFilter)
         {
             try
             {
@@ -223,6 +240,210 @@ namespace API_PCC.Controllers
             {
                 return Problem(ex.GetBaseException().ToString());
             }
+        }
+        [HttpPost]
+        public async Task<IActionResult> FarmerList(string HerdId)
+        {
+
+            var result = (dynamic)null;
+            if (HerdId != "")
+            {
+                result = dbmet.FarmerListView().Where(a => a.HerdId == HerdId).ToList();
+                if (result.Count != 0)
+                {
+                    return Ok(result);
+                }
+                else
+                {
+                    return Ok("No Record Found");
+                }
+
+            }
+            else
+            {
+
+                return Ok("No Record Found");
+            }
+
+        }
+        public class FeedingTypeId
+        {
+            public int FarmerFeedId { get; set; }
+
+        }
+        public class BreedTypeId
+        {
+            public int FarmerBreedId { get; set; }
+        }
+        public class FarmerSaveModel
+        {
+            public int HerdId { get; set; }
+            public int FarmerId { get; set; }
+            public List<FeedingTypeId> FeedingSystemId { get; set; }
+            public List<BreedTypeId> BreedTypeId { get; set; }
+            public int FarmerAffliation_Id { get; set; }
+            public int FarmerClassification_Id { get; set; }
+            public string? FirstName { get; set; }
+            public string? LastName { get; set; }
+            public string? Address { get; set; }
+            public string? TelephoneNumber { get; set; }
+            public string? MobileNumber { get; set; }
+            public int? UserId { get; set; }
+            public int? CreatedBy { get; set; }
+            public string? Group_Id { get; set; }
+            public string? Is_Manager { get; set; }
+            public string? Email { get; set; }
+
+        }
+        [HttpPost]
+        public async Task<IActionResult> FarmerSave(FarmerSaveModel model)
+        {
+            string Insert = "";
+            string isfarmer = $@"select * from tbl_Farmers where User_Id ='" + model.UserId + "'";
+
+            DataTable tbl_isfarmer = db.SelectDb(isfarmer).Tables[0];
+            if (tbl_isfarmer.Rows.Count != 0)
+            {
+                return BadRequest("User is already a Farmer");
+            }
+            else
+            {
+                string isHerd = $@"select * from H_Buff_Herd where Id ='" + model.HerdId + "'";
+
+                DataTable tbl_isHerd = db.SelectDb(isHerd).Tables[0];
+                if (tbl_isHerd.Rows.Count == 0)
+                {
+                    return BadRequest("Herd Id does not Exist");
+                }
+                else
+                {
+                    Insert += $@"
+                   INSERT INTO [dbo].[tbl_HerdFarmer]
+                               ([Herd_Id]
+                               ,[Farmer_Id]
+                               ,[Created_By]
+                               ,[Is_Deleted]
+                               ,[Created_At])
+                         VALUES
+                           ('" + model.HerdId + "'," +
+                          "'" + model.FarmerId + "'," +
+                          "'" + model.CreatedBy + "'," +
+                           "'0'," +
+                          "'" + DateTime.Now.ToString("yyyy-MM-dd") + "') ";
+                }
+                for(int x=0; x>model.FeedingSystemId.Count;x++)
+                {
+                    string isfeeding = $@"select * from H_Feeding_System where Id ='" + model.FeedingSystemId[x].FarmerFeedId + "'";
+
+                    DataTable tbl_isfeeding = db.SelectDb(isfeeding).Tables[0];
+                    if (tbl_isHerd.Rows.Count == 0)
+                    {
+                        return BadRequest("Feeding System Id does not Exist");
+                    }
+                    else
+                    {
+                        Insert += $@"
+                   INSERT INTO [dbo].[tbl_FarmerFeedingSystem]
+                                   ([Farmer_Id]
+                                   ,[FeedingSystem_Id]
+                                   ,[Created_By]
+                                   ,[Is_Deleted]
+                                   ,[Created_At])
+                             VALUES
+                           ('" + model.FarmerId + "'," +
+                                                   "'" + model.FeedingSystemId[x].FarmerFeedId + "'," +
+                                                   "'" + model.CreatedBy + "'," +
+                                                    "'0'," +
+                                                   "'" + DateTime.Now.ToString("yyyy-MM-dd") + "') ";
+                    }
+                }
+                for(int i=0;i<model.BreedTypeId.Count;i++)
+                {
+                    string isbreed = $@"select * from A_Breed where Id ='" + model.BreedTypeId[i].FarmerBreedId + "'";
+
+                    DataTable tbl_isbreed = db.SelectDb(isbreed).Tables[0];
+                    if (tbl_isbreed.Rows.Count == 0)
+                    {
+                        return BadRequest("Feeding System Id does not Exist");
+                    }
+                    else
+                    {
+                        Insert += $@"
+                   INSERT INTO [dbo].[tbl_FarmerBreedType]
+                               ([Farmer_Id]
+                               ,[BreedType_Id]
+                               ,[Created_By]
+                               ,[Is_Deleted]
+                               ,[Created_At])
+                            VALUES
+                           ('" + model.FarmerId + "'," +
+                                              "'" + model.BreedTypeId[i].FarmerBreedId + "'," +
+                                              "'" + model.UserId + "'," +
+                                              "'0'," +
+                                              "'" + DateTime.Now.ToString("yyyy-MM-dd") + "') ";
+                    }
+                }
+              
+
+
+                string isAffil = $@"select * from H_Farmer_Affiliation where Id ='" + model.FarmerAffliation_Id + "'";
+
+                DataTable tbl_isAffil = db.SelectDb(isAffil).Tables[0];
+                string isclassification = $@"select * from H_Farmer_Affiliation where Id ='" + model.FarmerClassification_Id + "'";
+
+                DataTable tbl_isclassificationl = db.SelectDb(isclassification).Tables[0];
+                if (tbl_isAffil.Rows.Count == 0)
+                {
+                    return BadRequest("Affiliation System Id does not Exist");
+                }
+                else if (tbl_isclassificationl.Rows.Count == 0)
+                {
+                    return BadRequest("Classification System Id does not Exist");
+
+                }
+                else
+                {
+                    Insert += $@"
+                  INSERT INTO [dbo].[Tbl_Farmers]
+                               ([FirstName]
+                               ,[LastName]
+                               ,[Address]
+                               ,[TelephoneNumber]
+                               ,[MobileNumber]
+                               ,[User_Id]
+                               ,[Group_Id]
+                               ,[Is_Manager]
+                               ,[FarmerClassification_Id]
+                               ,[FarmerAffliation_Id]
+                               ,[Created_By]
+                               ,[Created_At]
+                               ,[Email]
+                               ,[Deleted_At]
+                               ,[Is_Deleted])
+                         VALUES
+                           ('" + model.FirstName + "'," +
+                                          "'" + model.LastName + "'," +
+                                          "'" + model.Address + "'," +
+                                          "'" + model.TelephoneNumber + "'," +
+                                          "'" + model.MobileNumber + "'," +
+                                          "'" + model.UserId + "'," +
+                                          "'" + model.Group_Id + "'," +
+                                          "'" + model.Is_Manager + "'," +
+                                          "'" + model.FarmerClassification_Id + "'," +
+                                          "'" + model.FarmerAffliation_Id + "'," +
+                                          "'" + model.CreatedBy + "'," +
+                                          "'" + DateTime.Now.ToString("yyyy-MM-dd") + "'," +
+                                          "'" + DateTime.Now.ToString("yyyy-MM-dd") + "'," +
+                                          "'0') ";
+                }
+
+
+
+                return Ok("Successfully Saved" + db.DB_WithParam(Insert));
+            }
+
+
+
         }
         [HttpPost]
         public async Task<IActionResult> View(string HerdCode)
@@ -237,32 +458,40 @@ namespace API_PCC.Controllers
                                     select new
                                     {
                                         FarmerId = a.FarmerId,
-                                        FarmerName = c.LastName +", "+ c.FirstName
+                                        FarmerName = c.LastName + ", " + c.FirstName,
+                                        FarmAddress = b.FarmAddress,
+                                        Photo = b.Photo,
+                                        CreatedBy = b.CreatedBy,
+                                        DateCreated = b.DateCreated
 
                                     }).ToList();
-                var farmer_list = FarmerHerdList2().Where(a=>a.HerdCode == HerdCode).FirstOrDefault();
+                var farmer_list = FarmerHerdList2().Where(a => a.HerdCode == HerdCode).FirstOrDefault();
                 var Feedinglist = _context.HFeedingSystems.ToList();
-                var cowLevel = _context.ABuffAnimals.Where(buff => buff.HerdCode == HerdCode).ToList().Count();
-              
-                var item =new ViewBreedRegistryHerd();
+                var cowLevel = _context.ABuffAnimals.Where(buff => buff.FarmerId == farmer_list.FarmerId).ToList().Count();
+
+                var item = new ViewBreedRegistryHerd();
                 item.HerdCode = farmer_list.HerdCode;
                 item.HerdName = farmer_list.HerdName;
                 item.DateofApplication = farmer_list.DateofApplication;
                 item.FarmerName = farmer_list.FarmerName;
+                item.FarmAddress = farmer_list.FarmAddress;
+                item.Photo = farmer_list.Photo;
+                item.CreatedBy = farmer_list.CreatedBy;
+                item.DateCreated = farmer_list.DateCreated;
                 item.FarmerId = farmer_list.FarmerId;
                 item.CowLevel = farmer_list.CowLevel;
                 item.FarmManager = farmer_list.FarmManager;
                 var farm = new List<ListFarmer>();
-                for (int i = 0; i<farmer_pivot.Count;i++)
+                for (int i = 0; i < farmer_pivot.Count; i++)
                 {
                     //var BreedList = _context.ABreeds.Where(a=>a.Id == farmer_pivot[i].BreedTypeId).FirstOrDefault();
-                  
+
                     var b_item = new ListFarmer();
                     b_item.Id = farmer_pivot[i].FarmerId;
                     b_item.FarmerName = farmer_pivot[i].FarmerName;
                     //b_item.BreedType = BreedList.BreedDesc;
                     var feed = new List<FeedingType>();
-                  
+
                     var feedinglist = (from a in _context.HFeedingSystems
                                        join b in _context.tbl_FarmerFeedingSystem on a.Id equals b.FeedingSystem_Id into feeding
                                        from b in feeding.DefaultIfEmpty()
@@ -272,7 +501,7 @@ namespace API_PCC.Controllers
                                            Farmer_Id = b.Farmer_Id
 
                                        }).Where(farmowner => farmowner.Farmer_Id == farmer_pivot[i].FarmerId).ToList();
-                    for(int x=0;x<feedinglist.Count;x++)
+                    for (int x = 0; x < feedinglist.Count; x++)
                     {
                         var f_item = new FeedingType();
                         f_item.FeedingSystemDesc = feedinglist[x].feedingSystemDesc;
@@ -280,17 +509,17 @@ namespace API_PCC.Controllers
 
                     }
                     var breed = new List<BreedType>();
-                  
-                    var breedlist = (from a in _context.ABreeds
-                                       join b in _context.TblFarmerBreedTypes on a.Id equals b.BreedTypeId into breeds
-                                       from b in breeds.DefaultIfEmpty()
-                                       select new
-                                       {
-                                           Breed_Desc = a.BreedDesc,
-                                           Farmer_Id = b.FarmerId
 
-                                       }).Where(farmowner => farmowner.Farmer_Id == farmer_pivot[i].FarmerId).ToList();
-                    for(int x=0;x< breedlist.Count;x++)
+                    var breedlist = (from a in _context.ABreeds
+                                     join b in _context.TblFarmerBreedTypes on a.Id equals b.BreedTypeId into breeds
+                                     from b in breeds.DefaultIfEmpty()
+                                     select new
+                                     {
+                                         Breed_Desc = a.BreedDesc,
+                                         Farmer_Id = b.FarmerId
+
+                                     }).Where(farmowner => farmowner.Farmer_Id == farmer_pivot[i].FarmerId).ToList();
+                    for (int x = 0; x < breedlist.Count; x++)
                     {
                         var bb_item = new BreedType();
                         bb_item.Breed_Desc = breedlist[x].Breed_Desc;
@@ -353,40 +582,40 @@ namespace API_PCC.Controllers
 
             return query;
         }
-     
-        private List<HerdFarmerPageModel>  FormList(FarmerHerdSearch searchFilter, List<BreedRegistryHerd> farmerherdlist)
+
+        private List<HerdFarmerPageModel> FormList(FarmerHerdSearch searchFilter, List<BreedRegistryHerd> farmerherdlist)
         {
-          
 
-                int pagesize = searchFilter.pageSize == 0 ? 10 : searchFilter.pageSize;
-                int page = searchFilter.page == 0 ? 1 : searchFilter.page;
-                var items = (dynamic)null;
 
-                int totalItems = farmerherdlist.Count;
-                int totalPages = (int)Math.Ceiling((double)totalItems / pagesize);
-                items = farmerherdlist.Skip((page - 1) * pagesize).Take(pagesize).ToList();
-                //var herdModels = convertDataRowListToHerdModelList(items);
+            int pagesize = searchFilter.pageSize == 0 ? 10 : searchFilter.pageSize;
+            int page = searchFilter.page == 0 ? 1 : searchFilter.page;
+            var items = (dynamic)null;
 
-                var results = new List<HerdFarmerPageModel>();
-                var item = new HerdFarmerPageModel();
+            int totalItems = farmerherdlist.Count;
+            int totalPages = (int)Math.Ceiling((double)totalItems / pagesize);
+            items = farmerherdlist.Skip((page - 1) * pagesize).Take(pagesize).ToList();
+            //var herdModels = convertDataRowListToHerdModelList(items);
 
-                int pages = searchFilter.page == 0 ? 1 : searchFilter.page;
-                item.CurrentPage = searchFilter.page == 0 ? "1" : searchFilter.page.ToString();
-                int page_prev = pages - 1;
+            var results = new List<HerdFarmerPageModel>();
+            var item = new HerdFarmerPageModel();
 
-                double t_records = Math.Ceiling(Convert.ToDouble(totalItems) / Convert.ToDouble(pagesize));
-                int page_next = searchFilter.page >= t_records ? 0 : pages + 1;
-                item.NextPage = items.Count % pagesize >= 0 ? page_next.ToString() : "0";
-                item.PrevPage = pages == 1 ? "0" : page_prev.ToString();
-                item.TotalPage = t_records.ToString();
-                item.PageSize = pagesize.ToString();
-                item.TotalRecord = totalItems.ToString();
-                item.items = items;
-                results.Add(item);
+            int pages = searchFilter.page == 0 ? 1 : searchFilter.page;
+            item.CurrentPage = searchFilter.page == 0 ? "1" : searchFilter.page.ToString();
+            int page_prev = pages - 1;
 
-                return results;
+            double t_records = Math.Ceiling(Convert.ToDouble(totalItems) / Convert.ToDouble(pagesize));
+            int page_next = searchFilter.page >= t_records ? 0 : pages + 1;
+            item.NextPage = items.Count % pagesize >= 0 ? page_next.ToString() : "0";
+            item.PrevPage = pages == 1 ? "0" : page_prev.ToString();
+            item.TotalPage = t_records.ToString();
+            item.PageSize = pagesize.ToString();
+            item.TotalRecord = totalItems.ToString();
+            item.items = items;
+            results.Add(item);
 
-            }
+            return results;
+
+        }
         private HBuffHerd buildBuffHerd(BuffHerdBaseModel registrationModel)
         {
             var BuffHerdModel = new HBuffHerd()
@@ -409,7 +638,7 @@ namespace API_PCC.Controllers
         [HttpPost]
         public async Task<ActionResult<HBuffHerd>> Save(BuffHerdRegistrationModel registrationModel)
         {
-           
+
             try
             {
                 DataTable buffHerdDuplicateCheck = db.SelectDb_WithParamAndSorting(QueryBuilder.buildHerdDuplicateCheckSaveQuery(), null, populateSqlParameters(registrationModel.HerdName, registrationModel.HerdCode));
@@ -423,7 +652,7 @@ namespace API_PCC.Controllers
                 var BuffHerdModel = buildBuffHerd(registrationModel);
                 DataTable farmOwnerRecordsCheck = db.SelectDb_WithParamAndSorting(QueryBuilder.buildFarmOwnerSearchQueryByFirstNameAndLastName(), null, populateSqlParametersFarmer(registrationModel.Owner));
 
-                
+
 
                 //populateFeedingSystemAndBuffaloType(BuffHerdModel, registrationModel);
 
@@ -435,7 +664,7 @@ namespace API_PCC.Controllers
 
 
 
-             
+
                 status = "Herd successfully registered!";
                 dbmet.InsertAuditTrail("Save Buffalo Herd" + " " + status, DateTime.Now.ToString("yyyy-MM-dd"), "Herd Module", registrationModel.CreatedBy, "0");
 
@@ -476,7 +705,7 @@ namespace API_PCC.Controllers
             var buffHerd = _context.HBuffHerds
                     .Single(x => x.Id == id);
 
-           
+
 
 
 
