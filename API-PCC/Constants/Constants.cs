@@ -15,6 +15,7 @@ FROM            H_Buff_Herd LEFT JOIN
                          H_Herd_Classification ON H_Buff_Herd.Herd_Class_Desc = H_Herd_Classification.Herd_Class_Code ";
         public static readonly String BUFFALO_TYPE_SELECT = $@"SELECT * FROM H_BUFFALO_TYPE ";
         public static readonly String FARMER_AFFILIATION_SELECT = $@"SELECT * FROM H_FARMER_AFFILIATION ";
+        public static readonly String FARMERS_SELECT = $@"SELECT * FROM TBL_FARMERS ";
         public static readonly String FEEDING_SYSTEM_SELECT = $@"SELECT * FROM H_FEEDING_SYSTEM ";
         public static readonly String HERD_CLASSIFICATION_SELECT = $@"SELECT * FROM H_HERD_ClASSIFICATION ";
 

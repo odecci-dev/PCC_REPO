@@ -107,6 +107,26 @@ namespace API_PCC.Utils
             }
             return farmer;
         }
+
+        public static String buildFarmerList(CommonSearchFilterModel farmer)
+        {
+            return Constants.DBQuery.FARMERS_SELECT + "WHERE Tbl_Farmers.DELETE_FLAG = 0 ";
+        }
+
+        public static String buildFarmerSearch(FarmerSearchFilterModel searchFilterModel)
+        {
+            String farmerSelect = Constants.DBQuery.FARMERS_SELECT + "WHERE Tbl_Farmers.Is_Deleted = 0 ";
+            if (searchFilterModel.searchValue != null && searchFilterModel.searchValue != "")
+            {
+                farmerSelect = farmerSelect + "AND (FirstName LIKE '%' + @SearchParam + '%' OR LastName LIKE '%' + @SearchParam + '%') ";
+            }
+            //if (searchFilterModel.breedType != null && searchFilterModel.breedType != "")
+            //{
+            //    farmerSelect = farmerSelect + "AND (FirstName LIKE '%' + @SearchParam + '%') ";
+            //}
+            return farmerSelect;
+        }
+
         public static String buildFarmOwnerSearchQueryById()
         {
             return Constants.DBQuery.FARM_OWNER_SELECT + "WHERE id = @Id";
