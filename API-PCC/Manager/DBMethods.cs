@@ -755,7 +755,7 @@ FROM            PCC_adjusted.dbo.H_Buff_Herd INNER JOIN
                          tbl_UserTypeModel.name, tbl_StatusModel.Status AS StatusName, tbl_CenterModel.CenterName,isFarmer
                     FROM            tbl_UsersModel LEFT JOIN
                          tbl_UserTypeModel ON tbl_UsersModel.UserType = tbl_UserTypeModel.id INNER JOIN
-                         tbl_StatusModel ON tbl_UsersModel.Status = tbl_StatusModel.id INNER JOIN
+                         tbl_StatusModel ON tbl_UsersModel.Status = tbl_StatusModel.id LEFT JOIN
                          tbl_CenterModel ON tbl_UsersModel.CenterId = tbl_CenterModel.id
                     WHERE        (tbl_UsersModel.Delete_Flag = 0)";
 
