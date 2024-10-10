@@ -753,7 +753,7 @@ FROM            PCC_adjusted.dbo.H_Buff_Herd INNER JOIN
                          tbl_UsersModel.Date_Created, tbl_UsersModel.Date_Updated, tbl_UsersModel.Delete_Flag, tbl_UsersModel.Created_By, tbl_UsersModel.Updated_By, tbl_UsersModel.Date_Deleted, tbl_UsersModel.Deleted_By, 
                          tbl_UsersModel.Date_Restored, tbl_UsersModel.Restored_By, tbl_UsersModel.CenterId, tbl_UsersModel.AgreementStatus, tbl_UsersModel.RememberToken, tbl_UsersModel.UserType, tbl_UserTypeModel.code, 
                          tbl_UserTypeModel.name, tbl_StatusModel.Status AS StatusName, tbl_CenterModel.CenterName,isFarmer
-                    FROM            tbl_UsersModel INNER JOIN
+                    FROM            tbl_UsersModel LEFT JOIN
                          tbl_UserTypeModel ON tbl_UsersModel.UserType = tbl_UserTypeModel.id INNER JOIN
                          tbl_StatusModel ON tbl_UsersModel.Status = tbl_StatusModel.id INNER JOIN
                          tbl_CenterModel ON tbl_UsersModel.CenterId = tbl_CenterModel.id
