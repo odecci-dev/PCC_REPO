@@ -731,6 +731,7 @@ FROM            PCC_adjusted.dbo.H_Buff_Herd INNER JOIN
                 DataTable table_cowlvl = db.SelectDb(sql_cowlvl).Tables[0];
 
                 var item = new ListFarmerVM();
+                //item.Id = int.Parse(dr["Id"].ToString());
                 item.Id = dr["Id"].ToString();
                 item.HerdId = dr["Herd_Id"].ToString();
                 item.FarmerId = dr["Farmer_Id"].ToString();
