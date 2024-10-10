@@ -697,7 +697,7 @@ FROM            tbl_UserTypeModel INNER JOIN
         }
         public class ListFarmerVM
         {
-            public int? Id { get; set; }
+            public string? Id { get; set; }
             public string HerdId { get; set; }
             public string FarmerId { get; set; }
             public string FarmerName { get; set; }
@@ -731,7 +731,7 @@ FROM            PCC_adjusted.dbo.H_Buff_Herd INNER JOIN
                 DataTable table_cowlvl = db.SelectDb(sql_cowlvl).Tables[0];
 
                 var item = new ListFarmerVM();
-                item.Id = int.Parse(dr["Id"].ToString());
+                item.Id = dr["Id"].ToString();
                 item.HerdId = dr["Herd_Id"].ToString();
                 item.FarmerId = dr["Farmer_Id"].ToString();
                 item.FarmerName = dr["LastName"].ToString() + ", "+ dr["FirstName"].ToString();
