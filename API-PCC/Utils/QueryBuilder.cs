@@ -95,6 +95,7 @@ namespace API_PCC.Utils
         {
             return Constants.DBQuery.FARM_OWNER_SELECT + "WHERE FirstName = @FirstName AND LastName = @LastName";
         }
+
         public static String buildFarmOwnerSearchQueryByFirstNameOrLastName(FarmOwnerSearchFilterModel searchFilterModel)
         {
             String farmer = Constants.DBQuery.FARM_OWNER_SELECT;
@@ -110,7 +111,13 @@ namespace API_PCC.Utils
 
         public static String buildFarmerList(CommonSearchFilterModel farmer)
         {
-            return Constants.DBQuery.FARMERS_SELECT + "WHERE Tbl_Farmers.DELETE_FLAG = 0 ";
+            return Constants.DBQuery.FARMERS_SELECT + "WHERE Tbl_Farmers.Is_Deleted = 0 ";
+        }
+        public static String buildFarmerSearchById()
+        {
+            String farmerSelect = Constants.DBQuery.FARMERS_SELECT + "WHERE Tbl_Farmers.Is_Deleted = 0 AND Tbl_Farmers.Id = @Id";
+            
+            return farmerSelect;
         }
 
         public static String buildFarmerSearch(FarmerSearchFilterModel searchFilterModel)
