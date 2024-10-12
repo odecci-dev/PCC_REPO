@@ -272,6 +272,71 @@ namespace API_PCC.Controllers
             }
         }
 
+        [HttpPost]
+        public async Task<IActionResult> delete(DeletionModel deletionModel)
+        {
+
+            if (_context.Tbl_Farmers == null)
+            {
+                return Problem("Entity set 'PCC_DEVContext.Tbl_Farmers' is null!");
+            }
+
+            var farmer = await _context.Tbl_Farmers.FindAsync(deletionModel.id);
+            if (farmer == null || farmer.Is_Deleted)
+            {
+                return Conflict("No records matched!");
+            }
+
+            try
+            {
+                farmer.Is_Deleted = true;
+                farmer.Deleted_At = DateTime.Now;
+                farmer.Deleted_By = int.Parse(deletionModel.deletedBy);
+                _context.Entry(farmer).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+                return Ok("Deletion Successful!");
+            }
+            catch (Exception ex)
+            {
+
+                return Problem(ex.GetBaseException().ToString());
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> restore(RestorationModel restorationModel)
+        {
+
+            if (_context.Tbl_Farmers == null)
+            {
+                return Problem("Entity set 'PCC_DEVContext.Tbl_Farmers' is null!");
+            }
+
+            var farmer = await _context.Tbl_Farmers.FindAsync(restorationModel.id);
+            if (farmer == null || !farmer.Is_Deleted)
+            {
+                return Conflict("No deleted records matched!");
+            }
+
+            try
+            {
+                farmer.Is_Deleted = !farmer.Is_Deleted;
+                farmer.Deleted_At = null;
+                farmer.Deleted_By = null;
+                //farmer.DateRestored = DateTime.Now;
+                //farmer.RestoredBy = restorationModel.restoredBy;
+
+                _context.Entry(farmer).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+                return Ok("Restoration Successful!");
+            }
+            catch (Exception ex)
+            {
+
+                return Problem(ex.GetBaseException().ToString());
+            }
+        }
+
         private List<FarmerPagedModel> farmersPagedModel(FarmerSearchFilterModel searchFilter, DataTable dt)
         {
 
@@ -312,6 +377,28 @@ namespace API_PCC.Controllers
             foreach (DataRow dataRow in dataRowList)
             {
                 var farmerModel = DataRowToObject.ToObject<TblFarmers>(dataRow);
+
+                string sql = $@"SELECT DISTINCT BreedType_Id FROM tbl_FarmerBreedType WHERE Farmer_Id = '{farmerModel.Id}'";
+                DataTable farmerBreedTypeList = db.SelectDb(sql).Tables[0];
+
+                var breedTypeCodes = new List<string>();
+                foreach (DataRow row in farmerBreedTypeList.Rows)
+                {
+                    breedTypeCodes.Add(row["BreedType_Id"].ToString());
+                }
+
+                string sql2 = $@"SELECT DISTINCT FeedingSystem_Id FROM tbl_FarmerFeedingSystem WHERE Farmer_Id = '{farmerModel.Id}'";
+                DataTable farmerFeedingSystemList = db.SelectDb(sql2).Tables[0];
+
+                var feedingTypeCodes = new List<string>();
+                foreach (DataRow row in farmerFeedingSystemList.Rows)
+                {
+                    feedingTypeCodes.Add(row["FeedingSystem_Id"].ToString());
+                }
+
+                farmerModel.BreedTypeCodes = breedTypeCodes;
+                farmerModel.FeedingSystemCodes = feedingTypeCodes;
+
                 farmerList.Add(farmerModel);
             }
 
@@ -382,6 +469,24 @@ namespace API_PCC.Controllers
                 {
                     ParameterName = "SearchParam",
                     Value = searchFilter.searchValue ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.VarChar,
+                });
+            }
+            if (searchFilter.breedType != null && searchFilter.breedType != "")
+            {
+                sqlParameters.Add(new SqlParameter
+                {
+                    ParameterName = "BreedType",
+                    Value = searchFilter.breedType ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.VarChar,
+                });
+            }
+            if (searchFilter.feedingSystem != null && searchFilter.feedingSystem != "")
+            {
+                sqlParameters.Add(new SqlParameter
+                {
+                    ParameterName = "FeedingSystem",
+                    Value = searchFilter.feedingSystem ?? Convert.DBNull,
                     SqlDbType = System.Data.SqlDbType.VarChar,
                 });
             }

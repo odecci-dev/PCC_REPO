@@ -130,9 +130,23 @@ namespace API_PCC.Utils
         public static String buildFarmerSearch(FarmerSearchFilterModel searchFilterModel)
         {
             String farmerSelect = Constants.DBQuery.FARMERS_SELECT + "WHERE Tbl_Farmers.Is_Deleted = 0 ";
-            if (searchFilterModel.searchValue != null && searchFilterModel.searchValue != "")
+            String farmerSortByBreedType = Constants.DBQuery.FARMERS_SELECT + @$"LEFT JOIN 
+                                                                    tbl_FarmerBreedType ON Tbl_Farmers.Id = tbl_FarmerBreedType.Farmer_Id
+                                                                    WHERE Tbl_Farmers.Is_Deleted = 0 ";
+            String farmerSortByFeedingSystem = Constants.DBQuery.FARMERS_SELECT + @$"LEFT JOIN 
+                                                                    tbl_FarmerFeedingSystem ON Tbl_Farmers.Id = tbl_FarmerFeedingSystem.Farmer_Id
+                                                                    WHERE Tbl_Farmers.Is_Deleted = 0 ";
+            if (!string.IsNullOrEmpty(searchFilterModel.breedType))
             {
-                farmerSelect = farmerSelect + "AND (FirstName LIKE '%' + @SearchParam + '%' OR LastName LIKE '%' + @SearchParam + '%') ";
+                farmerSelect = farmerSortByBreedType + "AND tbl_FarmerBreedType.BreedType_Id = @BreedType ; ";
+            }
+            if (!string.IsNullOrEmpty(searchFilterModel.feedingSystem))
+            {
+                farmerSelect = farmerSortByFeedingSystem + "AND tbl_FarmerFeedingSystem.FeedingSystem_Id = @FeedingSystem ; ";
+            }
+            if (!string.IsNullOrEmpty(searchFilterModel.searchValue))
+            {
+                farmerSelect = farmerSelect + "AND (FirstName LIKE '%' + @SearchParam + '%' OR LastName LIKE '%' + @SearchParam + '%'); ";
             }
             //if (searchFilterModel.breedType != null && searchFilterModel.breedType != "")
             //{
