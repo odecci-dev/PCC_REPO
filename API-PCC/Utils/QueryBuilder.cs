@@ -120,6 +120,13 @@ namespace API_PCC.Utils
             return farmerSelect;
         }
 
+        public static String buildFarmerSearchByFirstNameLastNameAddress()
+        {
+            String farmerSelect = Constants.DBQuery.FARMERS_SELECT + "WHERE Tbl_Farmers.Is_Deleted = 0 AND Tbl_Farmers.Id = @Id AND FirstName = '@FirstName' AND LastName = '@LastName' AND Address = '@Address'";
+
+            return farmerSelect;
+        }
+
         public static String buildFarmerSearch(FarmerSearchFilterModel searchFilterModel)
         {
             String farmerSelect = Constants.DBQuery.FARMERS_SELECT + "WHERE Tbl_Farmers.Is_Deleted = 0 ";
