@@ -316,7 +316,7 @@ namespace API_PCC.Controllers
         //    return result;
         //}
 
-        private List<PaginationModel> buildUserPagedModel(CommonSearchFilterModel searchFilter)
+        private List<PaginationModel> buildUserPagedModel(UserBaseSearchModel searchFilter)
         {
             var items = (dynamic)null;
             int totalItems = 0;
@@ -386,7 +386,7 @@ namespace API_PCC.Controllers
 
         //POST: user/listAll
         [HttpPost]
-        public async Task<ActionResult<IEnumerable<TblUsersModel>>> listAll(CommonSearchFilterModel searchFilter)
+        public async Task<ActionResult<IEnumerable<TblUsersModel>>> listAll(UserBaseSearchModel searchFilter)
         {
             {
                 try
