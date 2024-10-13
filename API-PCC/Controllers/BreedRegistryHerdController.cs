@@ -336,7 +336,7 @@ namespace API_PCC.Controllers
                     string isfeeding = $@"select * from H_Feeding_System where Id ='" + model.FeedingSystemId[x].FarmerFeedId + "'";
 
                     DataTable tbl_isfeeding = db.SelectDb(isfeeding).Tables[0];
-                    if (tbl_isHerd.Rows.Count == 0)
+                    if (tbl_isfeeding.Rows.Count == 0)
                     {
                         return BadRequest("Feeding System Id does not Exist");
                     }
