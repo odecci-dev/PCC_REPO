@@ -370,13 +370,13 @@ namespace API_PCC.Controllers
             return result;
         }
 
-        private List<TblFarmers> convertDataRowListToFarmerlist(List<DataRow> dataRowList)
+        private List<TblFarmerVM> convertDataRowListToFarmerlist(List<DataRow> dataRowList)
         {
-            var farmerList = new List<TblFarmers>();
+            var farmerList = new List<TblFarmerVM>();
 
             foreach (DataRow dataRow in dataRowList)
             {
-                var farmerModel = DataRowToObject.ToObject<TblFarmers>(dataRow);
+                var farmerModel = DataRowToObject.ToObject<TblFarmerVM>(dataRow);
 
                 string sql = $@"SELECT DISTINCT BreedType_Id FROM tbl_FarmerBreedType WHERE Farmer_Id = '{farmerModel.Id}'";
                 DataTable farmerBreedTypeList = db.SelectDb(sql).Tables[0];
@@ -396,8 +396,8 @@ namespace API_PCC.Controllers
                     feedingTypeCodes.Add(row["FeedingSystem_Id"].ToString());
                 }
 
-                farmerModel.BreedTypeCodes = breedTypeCodes;
-                farmerModel.FeedingSystemCodes = feedingTypeCodes;
+                farmerModel.FarmerBreedTypes = breedTypeCodes;
+                farmerModel.FarmerFeedingSystems = feedingTypeCodes;
 
                 farmerList.Add(farmerModel);
             }
