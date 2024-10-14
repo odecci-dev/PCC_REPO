@@ -3,7 +3,7 @@
     public class UserBaseModel
     {
         public string Username { get; set; }
-        public string Password { get; set; }
+        //public string Password { get; set; }
         public string Fullname { get; set; }
         public string Fname { get; set; }
         public string Lname { get; set; }
@@ -18,5 +18,6 @@
         public bool? AgreementStatus { get; set; }
         public int UserType { get; set; }
         public bool isFarmer { get; set; }
+        public string herdId { get; set; }
     }
 }

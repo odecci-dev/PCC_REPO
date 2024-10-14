@@ -15,11 +15,13 @@ FROM            H_Buff_Herd LEFT JOIN
                          H_Herd_Classification ON H_Buff_Herd.Herd_Class_Desc = H_Herd_Classification.Herd_Class_Code ";
         public static readonly String BUFFALO_TYPE_SELECT = $@"SELECT * FROM H_BUFFALO_TYPE ";
         public static readonly String FARMER_AFFILIATION_SELECT = $@"SELECT * FROM H_FARMER_AFFILIATION ";
+        public static readonly String FARMERS_SELECT = $@"SELECT * FROM TBL_FARMERS ";
         public static readonly String FEEDING_SYSTEM_SELECT = $@"SELECT * FROM H_FEEDING_SYSTEM ";
         public static readonly String HERD_CLASSIFICATION_SELECT = $@"SELECT * FROM H_HERD_ClASSIFICATION ";
 
         public static readonly String CENTER_SELECT = $@"SELECT * FROM TBL_CENTERMODEL ";
-        public static readonly String FARM_OWNER_SELECT = $@"SELECT * FROM TBL_FARMOWNER ";
+        public static readonly String FARM_OWNER_SELECT = $@"SELECT * FROM TBL_FARMERS ";
+        //public static readonly String FARM_OWNER_SELECT = $@"SELECT * FROM TBL_FARMOWNER ";
         //public static readonly String USERS_SELECT = $@"SELECT * FROM TBL_USERSMODEL ";
         public static readonly String USERS_SELECT = $@"select * from  tbl_UsersModel";
         public static readonly String MAIL_SENDER_CREDENTIALS_SELECT = $@"SELECT * FROM TBL_MAILSENDERCREDENTIAL ";

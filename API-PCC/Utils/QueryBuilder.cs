@@ -70,7 +70,7 @@ namespace API_PCC.Utils
         }
         public static String buildHerdSelectForRestoreQuery()
         {
-            return Constants.DBQuery.HERD_SELECT + "WHERE H_Buff_Herd.DELETE_FLAG = 1 AND AND H_Buff_Herd.ID = @Id";
+            return Constants.DBQuery.HERD_SELECT + "WHERE H_Buff_Herd.DELETE_FLAG = 1 AND  H_Buff_Herd.ID = @Id";
         }
         public static String buildHerdDuplicateCheckSaveQuery()
         {
@@ -95,18 +95,66 @@ namespace API_PCC.Utils
         {
             return Constants.DBQuery.FARM_OWNER_SELECT + "WHERE FirstName = @FirstName AND LastName = @LastName";
         }
+
         public static String buildFarmOwnerSearchQueryByFirstNameOrLastName(FarmOwnerSearchFilterModel searchFilterModel)
         {
-            String BuffaloType = Constants.DBQuery.FARM_OWNER_SELECT;
+            String farmer = Constants.DBQuery.FARM_OWNER_SELECT;
             //return Constants.DBQuery.FARM_OWNER_SELECT + "WHERE FirstName = @SearchParam OR LastName = @SearchParam";
 
             //String herdSelect = Constants.DBQuery.BUFFALO_TYPE_SELECT + "WHERE DELETE_FLAG = 0 ";
             if (searchFilterModel.searchParam != null && searchFilterModel.searchParam != "")
             {
-                BuffaloType = BuffaloType + "WHERE (FirstName LIKE '%' + @SearchParam + '%' OR LastName LIKE '%' + @SearchParam +'%') ";
+                farmer = farmer + "WHERE (FirstName LIKE '%' + @SearchParam + '%' OR LastName LIKE '%' + @SearchParam +'%') ";
             }
-            return BuffaloType;
+            return farmer;
         }
+
+        public static String buildFarmerList(CommonSearchFilterModel farmer)
+        {
+            return Constants.DBQuery.FARMERS_SELECT + "WHERE Tbl_Farmers.Is_Deleted = 0 ";
+        }
+        public static String buildFarmerSearchById()
+        {
+            String farmerSelect = Constants.DBQuery.FARMERS_SELECT + "WHERE Tbl_Farmers.Is_Deleted = 0 AND Tbl_Farmers.Id = @Id";
+            
+            return farmerSelect;
+        }
+
+        public static String buildFarmerSearchByFirstNameLastNameAddress()
+        {
+            String farmerSelect = Constants.DBQuery.FARMERS_SELECT + "WHERE Tbl_Farmers.Is_Deleted = 0 AND Tbl_Farmers.Id = @Id AND FirstName = '@FirstName' AND LastName = '@LastName' AND Address = '@Address'";
+
+            return farmerSelect;
+        }
+
+        public static String buildFarmerSearch(FarmerSearchFilterModel searchFilterModel)
+        {
+            String farmerSelect = Constants.DBQuery.FARMERS_SELECT + "WHERE Tbl_Farmers.Is_Deleted = 0 ";
+            String farmerSortByBreedType = Constants.DBQuery.FARMERS_SELECT + @$"LEFT JOIN 
+                                                                    tbl_FarmerBreedType ON Tbl_Farmers.Id = tbl_FarmerBreedType.Farmer_Id
+                                                                    WHERE Tbl_Farmers.Is_Deleted = 0 ";
+            String farmerSortByFeedingSystem = Constants.DBQuery.FARMERS_SELECT + @$"LEFT JOIN 
+                                                                    tbl_FarmerFeedingSystem ON Tbl_Farmers.Id = tbl_FarmerFeedingSystem.Farmer_Id
+                                                                    WHERE Tbl_Farmers.Is_Deleted = 0 ";
+            if (!string.IsNullOrEmpty(searchFilterModel.breedType))
+            {
+                farmerSelect = farmerSortByBreedType + "AND tbl_FarmerBreedType.BreedType_Id = @BreedType ; ";
+            }
+            if (!string.IsNullOrEmpty(searchFilterModel.feedingSystem))
+            {
+                farmerSelect = farmerSortByFeedingSystem + "AND tbl_FarmerFeedingSystem.FeedingSystem_Id = @FeedingSystem ; ";
+            }
+            if (!string.IsNullOrEmpty(searchFilterModel.searchValue))
+            {
+                farmerSelect = farmerSelect + "AND (FirstName LIKE '%' + @SearchParam + '%' OR LastName LIKE '%' + @SearchParam + '%'); ";
+            }
+            //if (searchFilterModel.breedType != null && searchFilterModel.breedType != "")
+            //{
+            //    farmerSelect = farmerSelect + "AND (FirstName LIKE '%' + @SearchParam + '%') ";
+            //}
+            return farmerSelect;
+        }
+
         public static String buildFarmOwnerSearchQueryById()
         {
             return Constants.DBQuery.FARM_OWNER_SELECT + "WHERE id = @Id";

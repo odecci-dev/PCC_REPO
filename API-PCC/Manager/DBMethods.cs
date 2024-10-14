@@ -12,6 +12,7 @@ using System.Data.SqlClient;
 using System.Runtime.ConstrainedExecution;
 using System.Text;
 using static API_PCC.Controllers.BloodCompsController;
+using static API_PCC.Controllers.BreedRegistryHerdController;
 using static API_PCC.Controllers.BuffAnimalsController;
 using static API_PCC.Controllers.PedigreeController;
 using static API_PCC.Controllers.UserController;
@@ -136,7 +137,28 @@ namespace API_PCC.Manager
 
         #endregion
 
-
+        public string BreedCode(string id)
+        {
+            string tbl = $@"SELECT  Breed_Code FROM A_Breed where id='" + id + "'";
+            DataTable breedcode = db.SelectDb(tbl).Tables[0];
+            string result = breedcode.Rows.Count != 0 ? breedcode.Rows[0]["Breed_Code"].ToString() : "";
+            return result;
+        }
+        public string BirthType(string id)
+        {
+            //string tbl1 = $@"SELECT  Birth_Type_Code FROM A_Birth_Type where id='" + id + "'";
+            string tbl1 = $@"SELECT  Birth_Type_Desc FROM A_Birth_Type where Birth_Type_Code = '" + id + "'";
+            DataTable btype = db.SelectDb(tbl1).Tables[0];
+            string result = btype.Rows.Count != 0 ? btype.Rows[0]["Birth_Type_Desc"].ToString() : "";
+            return result;
+        }
+        public string BloodCode(string id)
+        {
+            string tbl2 = $@"SELECT  Blood_Code FROM A_Blood_Comp where id='" + id + "'";
+            DataTable bcode = db.SelectDb(tbl2).Tables[0];
+            string result = bcode.Rows.Count != 0 ? bcode.Rows[0]["Blood_Code"].ToString() : "";
+            return result;
+        }
         public string InsertAuditTrail(string actions, string datecreated, string module, string userid, string read)
         {
             string Insert = $@"INSERT INTO [dbo].[tbl_audittrail]
@@ -205,11 +227,11 @@ namespace API_PCC.Manager
 
             return result;
         }
-        public List<animalresult> getanimallist(string? centerid, string? userid)
+        public List<animalresult> getanimallist(int? centerid, string? userid)
         {
             string sql = "";
             var result = new List<animalresult>();
-            if ((centerid != null && centerid != "") && (userid == null || userid == ""))
+            if ((centerid != null && centerid != 0) && (userid == null || userid == ""))
             {
                 string center_sql = $@"SELECT  Herd_Code,Center from H_Buff_Herd
                     WHERE        H_Buff_Herd.Center = '" + centerid + "'";
@@ -310,7 +332,7 @@ namespace API_PCC.Manager
                 }
 
             }
-            else if ((centerid != null && centerid != "") && (userid != null && userid != ""))
+            else if ((centerid != null && centerid != 0) && (userid != null && userid != ""))
             {
                 /// select tblusermodel get fname,lname,address
                 string user_sql = $@"SELECT  Fname,Lname,Address  from tbl_UsersModel WHERE Id = '" + userid + "'";
@@ -650,6 +672,7 @@ FROM            tbl_UserTypeModel INNER JOIN
             }
             return result;
         }
+
         public List<A_Family> getdamfamilybuff()
         {
 
@@ -672,6 +695,56 @@ FROM            tbl_UserTypeModel INNER JOIN
             }
             return result;
         }
+        public class ListFarmerVM
+        {
+            public string? Id { get; set; }
+            public string HerdId { get; set; }
+            public string FarmerId { get; set; }
+            public string FarmerName { get; set; }
+            public string BreedType { get; set; }
+            public string FeedingType { get; set; }
+            public string FarmerClassification { get; set; }
+            public string FarmerAffiliation { get; set; }
+            public string CowLevel { get; set; }
+        }
+        public List<ListFarmerVM> FarmerListView()
+        {
+
+            string sql = $@"SELECT  tbl_HerdFarmer.Farmer_Id, tbl_HerdFarmer.Herd_Id, tbl_HerdFarmer.Id, Tbl_Farmers.FirstName, Tbl_Farmers.LastName, H_Feeding_System.FeedingSystemDesc, A_Breed.Breed_Desc, 
+                         PCC_adjusted.dbo.H_Herd_Classification.Herd_Class_Desc, PCC_adjusted.dbo.H_Farmer_Affiliation.F_Desc, PCC_adjusted.dbo.H_Buff_Herd.Herd_Code
+FROM            PCC_adjusted.dbo.H_Buff_Herd INNER JOIN
+                         tbl_HerdFarmer ON PCC_adjusted.dbo.H_Buff_Herd.id = tbl_HerdFarmer.Herd_Id LEFT OUTER JOIN
+                         tbl_FarmerBreedType INNER JOIN
+                         Tbl_Farmers ON tbl_FarmerBreedType.Farmer_Id = Tbl_Farmers.Id INNER JOIN
+                         A_Breed ON tbl_FarmerBreedType.BreedType_Id = A_Breed.id INNER JOIN
+                         PCC_adjusted.dbo.H_Herd_Classification ON Tbl_Farmers.FarmerClassification_Id = PCC_adjusted.dbo.H_Herd_Classification.id INNER JOIN
+                         PCC_adjusted.dbo.H_Farmer_Affiliation ON Tbl_Farmers.FarmerAffliation_Id = PCC_adjusted.dbo.H_Farmer_Affiliation.id ON tbl_HerdFarmer.Farmer_Id = Tbl_Farmers.Id LEFT OUTER JOIN
+                         tbl_FarmerFeedingSystem ON Tbl_Farmers.Id = tbl_FarmerFeedingSystem.Farmer_Id LEFT OUTER JOIN
+                         H_Feeding_System ON tbl_FarmerFeedingSystem.FeedingSystem_Id = H_Feeding_System.id";
+            var result = new List<ListFarmerVM>();
+            DataTable table = db.SelectDb(sql).Tables[0];
+
+            foreach (DataRow dr in table.Rows)
+            {
+                string sql_cowlvl = $@"select Count(*) as Cowlevel from A_Buff_Animal where Herd_Code ='"+ dr["Herd_Code"].ToString() + "'";
+             
+                DataTable table_cowlvl = db.SelectDb(sql_cowlvl).Tables[0];
+
+                var item = new ListFarmerVM();
+                //item.Id = int.Parse(dr["Id"].ToString());
+                item.Id = dr["Id"].ToString();
+                item.HerdId = dr["Herd_Id"].ToString();
+                item.FarmerId = dr["Farmer_Id"].ToString();
+                item.FarmerName = dr["LastName"].ToString() + ", "+ dr["FirstName"].ToString();
+                item.BreedType = dr["Breed_Desc"].ToString();
+                item.FeedingType = dr["FeedingSystemDesc"].ToString();
+                item.FarmerClassification = dr["Herd_Class_Desc"].ToString();
+                item.FarmerAffiliation = dr["F_Desc"].ToString();
+                item.CowLevel = table_cowlvl.Rows[0]["Cowlevel"].ToString();
+                result.Add(item);
+            }
+            return result;
+        }
         public List<TblUsersModel_List> getUserList()
         {
 
@@ -680,11 +753,13 @@ FROM            tbl_UserTypeModel INNER JOIN
                          tbl_UsersModel.Date_Created, tbl_UsersModel.Date_Updated, tbl_UsersModel.Delete_Flag, tbl_UsersModel.Created_By, tbl_UsersModel.Updated_By, tbl_UsersModel.Date_Deleted, tbl_UsersModel.Deleted_By, 
                          tbl_UsersModel.Date_Restored, tbl_UsersModel.Restored_By, tbl_UsersModel.CenterId, tbl_UsersModel.AgreementStatus, tbl_UsersModel.RememberToken, tbl_UsersModel.UserType, tbl_UserTypeModel.code, 
                          tbl_UserTypeModel.name, tbl_StatusModel.Status AS StatusName, tbl_CenterModel.CenterName,isFarmer
-FROM            tbl_UsersModel INNER JOIN
+                    FROM            tbl_UsersModel LEFT JOIN
                          tbl_UserTypeModel ON tbl_UsersModel.UserType = tbl_UserTypeModel.id INNER JOIN
-                         tbl_StatusModel ON tbl_UsersModel.Status = tbl_StatusModel.id INNER JOIN
+                         tbl_StatusModel ON tbl_UsersModel.Status = tbl_StatusModel.id LEFT JOIN
                          tbl_CenterModel ON tbl_UsersModel.CenterId = tbl_CenterModel.id
-WHERE        (tbl_UsersModel.Delete_Flag = 0)";
+                    WHERE        (tbl_UsersModel.Delete_Flag = 0)";
+
+
             var result = new List<TblUsersModel_List>();
             DataTable table = db.SelectDb(sqls).Tables[0];
 
@@ -720,7 +795,7 @@ WHERE        (tbl_UsersModel.Delete_Flag = 0)";
                 item.DateRestored = dr["Date_Restored"].ToString();
                 item.RestoredBy = dr["Restored_By"].ToString();
                 item.CenterId = int.Parse(dr["CenterId"].ToString());
-                item.CenterName = dr["CenterName"].ToString();
+                item.CenterName = item.CenterId == 0 ? "ALL CENTER" : dr["CenterName"].ToString();
                 item.AgreementStatus = bool.Parse(dr["AgreementStatus"].ToString());
                 item.RememberToken = dr["RememberToken"].ToString();
                 item.UserType = dr["UserType"].ToString();
@@ -769,7 +844,7 @@ WHERE        (tbl_UsersModel.Delete_Flag = 0)";
                         item1.ModuleName = dr1["ModuleName"].ToString();
                         item1.ParentModule = dr1["ParentModule"].ToString();
                         item1.DateCreated = dr1["DateCreated"].ToString();
-                        string sql_actions = $@"select 
+                        string sql_actions = $@"select distinct
                                     Action_Id,
                                     Action_tbl.Action_name,
                                     User_UserTypeAccessTable.Module
@@ -843,19 +918,40 @@ WHERE        (tbl_UsersModel.Delete_Flag = 0)";
         }
         public List<TblUsersModel_List> getUserList_list(String username, String password)
         {
-
             string sqls = $@"SELECT     tbl_UsersModel.Id, tbl_UsersModel.Username, tbl_UsersModel.Password, tbl_UsersModel.Fullname, tbl_UsersModel.Fname, tbl_UsersModel.Lname, tbl_UsersModel.Mname, tbl_UsersModel.Email, 
                          tbl_UsersModel.Gender, tbl_UsersModel.EmployeeID, tbl_UsersModel.JWToken, tbl_UsersModel.FilePath, tbl_UsersModel.Active, tbl_UsersModel.Cno, tbl_UsersModel.Address, tbl_UsersModel.Status, 
                          tbl_UsersModel.Date_Created, tbl_UsersModel.Date_Updated, tbl_UsersModel.Delete_Flag, tbl_UsersModel.Created_By, tbl_UsersModel.Updated_By, tbl_UsersModel.Date_Deleted, tbl_UsersModel.Deleted_By, 
                          tbl_UsersModel.Date_Restored, tbl_UsersModel.Restored_By, tbl_UsersModel.CenterId, tbl_UsersModel.AgreementStatus, tbl_UsersModel.RememberToken, tbl_UsersModel.UserType, tbl_UserTypeModel.code, 
-                         tbl_UserTypeModel.name, tbl_StatusModel.Status AS StatusName, tbl_CenterModel.CenterName, tbl_UserTypeModel.userAccesasId
-FROM            tbl_UsersModel INNER JOIN
+                         tbl_UserTypeModel.name, tbl_StatusModel.Status AS StatusName, tbl_CenterModel.CenterName, tbl_UserTypeModel.userAccesasId, tbl_UsersModel.isFarmer
+                        FROM            tbl_UsersModel INNER JOIN
                          tbl_UserTypeModel ON tbl_UsersModel.UserType = tbl_UserTypeModel.id INNER JOIN
                          tbl_StatusModel ON tbl_UsersModel.Status = tbl_StatusModel.id INNER JOIN
                          tbl_CenterModel ON tbl_UsersModel.CenterId = tbl_CenterModel.id
-WHERE        (tbl_UsersModel.Delete_Flag = 0) and tbl_UsersModel.Username ='" + username + "' and tbl_UsersModel.Password='" + Cryptography.Encrypt(password) + "'";
+                        WHERE        (tbl_UsersModel.Delete_Flag = 0) and tbl_UsersModel.Username ='" + username + "' and tbl_UsersModel.Password='" + Cryptography.Encrypt(password) + "'";
+
+            string sqls2 = $@"SELECT     tbl_UsersModel.Id, tbl_UsersModel.Username, tbl_UsersModel.Password, tbl_UsersModel.Fullname, tbl_UsersModel.Fname, tbl_UsersModel.Lname, tbl_UsersModel.Mname, tbl_UsersModel.Email, 
+                         tbl_UsersModel.Gender, tbl_UsersModel.EmployeeID, tbl_UsersModel.JWToken, tbl_UsersModel.FilePath, tbl_UsersModel.Active, tbl_UsersModel.Cno, tbl_UsersModel.Address, tbl_UsersModel.Status, 
+                         tbl_UsersModel.Date_Created, tbl_UsersModel.Date_Updated, tbl_UsersModel.Delete_Flag, tbl_UsersModel.Created_By, tbl_UsersModel.Updated_By, tbl_UsersModel.Date_Deleted, tbl_UsersModel.Deleted_By, 
+                         tbl_UsersModel.Date_Restored, tbl_UsersModel.Restored_By, tbl_UsersModel.CenterId, tbl_UsersModel.AgreementStatus, tbl_UsersModel.RememberToken, tbl_UsersModel.UserType, tbl_UserTypeModel.code, 
+                         tbl_UserTypeModel.name, tbl_StatusModel.Status AS StatusName, tbl_UserTypeModel.userAccesasId, tbl_UsersModel.isFarmer
+                        FROM            tbl_UsersModel INNER JOIN
+                         tbl_UserTypeModel ON tbl_UsersModel.UserType = tbl_UserTypeModel.id INNER JOIN
+                         tbl_StatusModel ON tbl_UsersModel.Status = tbl_StatusModel.id 
+						 WHERE tbl_UsersModel.Delete_Flag = 0 AND tbl_UsersModel.CenterId = 0 and tbl_UsersModel.Username ='" + username + "' and tbl_UsersModel.Password='" + Cryptography.Encrypt(password) + "'";
+
             var result = new List<TblUsersModel_List>();
-            DataTable table = db.SelectDb(sqls).Tables[0];
+            //DataTable table = db.SelectDb(sqls).Tables[0];
+            DataTable table = new DataTable();
+
+            DataTable userInfo = db.SelectDb(sqls2).Tables[0];
+            if (userInfo.Rows.Count != 0)
+            {
+                table = userInfo;
+            }
+            else
+            {
+                table = db.SelectDb(sqls).Tables[0];
+            }
 
             foreach (DataRow dr in table.Rows)
             {
@@ -887,7 +983,8 @@ WHERE        (tbl_UsersModel.Delete_Flag = 0) and tbl_UsersModel.Username ='" + 
                 item.DateRestored = dr["Date_Restored"].ToString();
                 item.RestoredBy = dr["Restored_By"].ToString();
                 item.CenterId = int.Parse(dr["CenterId"].ToString());
-                item.CenterName = dr["CenterName"].ToString();
+                //item.CenterName = dr["CenterName"].ToString();
+                item.CenterName = item.CenterId == 0 ? "ALL CENTER" : dr["CenterName"].ToString();
                 item.AgreementStatus = bool.Parse(dr["AgreementStatus"].ToString());
                 item.RememberToken = dr["RememberToken"].ToString();
                 item.UserType = dr["UserType"].ToString();
@@ -895,6 +992,7 @@ WHERE        (tbl_UsersModel.Delete_Flag = 0) and tbl_UsersModel.Username ='" + 
                 item.UserTypeName = dr["name"].ToString();
                 item.StatusName = dr["StatusName"].ToString();
                 item.UserAccessId = dr["userAccesasId"].ToString();
+                item.isFarmer = (bool)dr["isFarmer"];
 
                 string sql = $@"SELECT [Id]
                       ,Name as UserType,userAccesasId
@@ -954,6 +1052,8 @@ WHERE        (tbl_UsersModel.Delete_Flag = 0) and tbl_UsersModel.Username ='" + 
         {
             var result = new List<TblUsersModel>();
             bool compr_user = false;
+            bool _isFarmer = false;
+            int? _center = null;
             if (username.Length != 0 || password.Length != 0)
             {
                 var param = new IDataParameter[]
@@ -966,7 +1066,15 @@ WHERE        (tbl_UsersModel.Delete_Flag = 0) and tbl_UsersModel.Username ='" + 
                 {
                     string user_statId = dt.Rows[0]["StatusId"].ToString();
                     string user_activeId = dt.Rows[0]["ActiveStatusId"].ToString();
-                    if (user_activeId == "1")
+                    bool user_deleteFlag = Convert.ToBoolean(dt.Rows[0]["Delete_Flag"]);
+                    if (user_deleteFlag)
+                    {
+                        Id = dt.Rows[0]["Id"].ToString();
+                        Stats = "Error";
+                        Mess = "Invalid Log In";
+                        JWT = "";
+                    }
+                    else if (user_activeId == "1")
                     {
                         //active
                         switch (user_statId)
@@ -1000,6 +1108,9 @@ WHERE        (tbl_UsersModel.Delete_Flag = 0) and tbl_UsersModel.Username ='" + 
                                         Random random = new Random();
                                         int length = 8;
                                         char letter;
+
+                                        _isFarmer = Convert.ToBoolean(dt.Rows[0]["isFarmer"]);
+                                        _center = (int)dt.Rows[0]["CenterId"];
 
                                         for (int i = 0; i < length; i++)
                                         {
@@ -1120,6 +1231,8 @@ WHERE        (tbl_UsersModel.Delete_Flag = 0) and tbl_UsersModel.Username ='" + 
                 Id = Id,
                 Status = Stats,
                 Message = Mess,
+                isFarmer = _isFarmer,
+                Center = _center,
                 JwtToken = JWT
             };
             return results;

@@ -16,7 +16,7 @@ public partial class HBuffHerd
 
     public string HerdCode { get; set; }
 
-    public int HerdSize { get; set; }
+    public int? HerdSize { get; set; }
     public string FarmAffilCode { get; set; }
 
     public string HerdClassDesc { get; set; }
@@ -54,4 +54,5 @@ public partial class HBuffHerd
     public string? OrganizationName { get; set; }
     public int? Center { get; set; }
     public string? Photo { get; set; }
+    public int? FarmerId { get; set; }
 }

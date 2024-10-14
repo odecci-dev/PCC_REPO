@@ -163,15 +163,22 @@ namespace API_PCC.Controllers
             return Ok(userlist);
         }
         [HttpPost]
-        public async Task<ActionResult<IEnumerable<TblUsersModel>>> UpdateProfile(int id, string profileimage)
+        public async Task<ActionResult<IEnumerable<TblUsersModel>>> UpdateProfile(int id, string profileimage, string fName, string lName, string email, string contNum, string address, string username)
         {
-
             string tbl_UsersModel_update = $@"UPDATE [dbo].[tbl_UsersModel] SET 
-                                             [FilePath] = '" + profileimage + "'" +
+                                             [FilePath] = '" + profileimage + "'," +
+                                             "[Fname] = '" + fName + "'," +
+                                             "[Lname] = '" + lName + "'," +
+                                             "[Fullname] = '" + fName + " " + lName + "'," +
+                                             "[Email] = '" + email + "'," +
+                                             "[Cno] = '" + contNum + "'," +
+                                             "[Address] = '" + address + "'," +
+                                             "[Username] = '" + username + "'" +
                                          " WHERE id = '" + id + "'";
             string result = db.DB_WithParam(tbl_UsersModel_update);
             return Ok(result);
         }
+
         [HttpPost]
         public async Task<ActionResult<IEnumerable<TblUsersModel>>> UserJWT(string JWT)
         {
@@ -191,21 +198,39 @@ namespace API_PCC.Controllers
             var userModel = (dynamic)null;
             int usertype = 0;
             var loginstats = dbmet.GetUserLogIn(data.username, data.password, data.ipaddress, data.location);
+            var item = new StatusReturns();
+
             if (!data.rememberToken.IsNullOrEmpty())
             {
                 userModel = dbmet.getUserList().Where(userModel => userModel.Username == data.username).FirstOrDefault();
+                
+                if (userModel == null) {
+
+                    item.Status = loginstats.Status;
+                    item.Message = loginstats.Message;
+                    item.JwtToken = loginstats.JwtToken;
+                    item.Id = loginstats.Id;
+                    item.isFarmer = loginstats.isFarmer;
+                    item.Center = loginstats.Center;
+
+                    return Ok(item);
+
+                    //return NotFound("User not found");
+                }
+
                 usertype = int.Parse(userModel.UserType);
+
                 //userModel.RememberToken = data.rememberToken;
                 //_context.Entry(userModel).State = EntityState.Modified;
 
                 //await _context.SaveChangesAsync();
+
                 string tbl_UsersModel_update = $@"UPDATE [dbo].[tbl_UsersModel] SET 
                                              [FirstName] = '" + data.rememberToken + "'" +
                                         " WHERE id = '" + userModel.Id + "'";
                 string result = db.DB_WithParam(tbl_UsersModel_update);
             }
             //var res = dbmet.UserTypeParams(usertype).FirstOrDefault();
-            var item = new StatusReturns();
             item.Status = loginstats.Status;
             item.Message = loginstats.Message;
             item.JwtToken = loginstats.JwtToken;
@@ -220,6 +245,7 @@ namespace API_PCC.Controllers
         [HttpPost]
         public async Task<ActionResult<IEnumerable<TblUsersModel>>> info(String username, String password)
         {
+            //
             if (_context.TblUsersModels == null)
             {
                 return Problem("Entity set 'PCC_DEVContext.TblUsersModels' is null!");
@@ -246,56 +272,123 @@ namespace API_PCC.Controllers
 
 
         }
-        private List<PaginationModel> buildUserPagedModel(CommonSearchFilterModel searchFilter)
+        //private List<PaginationModel> buildUserPagedModel(CommonSearchFilterModel searchFilter)
+        //{
+        //    var items = (dynamic)null;
+        //    int totalItems = 0;
+        //    int totalPages = 0;
+        //    string page_size = searchFilter.pageSize == 0 ? "10" : searchFilter.pageSize.ToString();
+
+        //    if (searchFilter.searchParam == null || searchFilter.searchParam == string.Empty)
+        //    {
+        //        var userlist = dbmet.getUserList().ToList();
+        //        totalItems = userlist.Count;
+        //        totalPages = (int)Math.Ceiling((double)totalItems / int.Parse(page_size.ToString()));
+        //        items = userlist.Skip((searchFilter.page - 1) * int.Parse(page_size.ToString())).Take(int.Parse(page_size.ToString())).ToList();
+        //    }
+        //    else
+        //    {
+        //        var userlist = dbmet.getUserList().Where(a => a.Username.ToLower().Contains( searchFilter.searchParam.ToLower()) || a.Fname.ToLower().Contains(searchFilter.searchParam.ToLower()) ||
+        //        a.Lname.ToLower().Contains(searchFilter.searchParam.ToLower()) || a.Mname.ToLower().Contains(searchFilter.searchParam.ToLower())).ToList();
+        //        totalItems = userlist.Count;
+        //        totalPages = (int)Math.Ceiling((double)totalItems / int.Parse(page_size.ToString()));
+        //        items = userlist.Skip((searchFilter.page - 1) * int.Parse(page_size.ToString())).Take(int.Parse(page_size.ToString())).ToList();
+        //    }
+
+        //    var result = new List<PaginationModel>();
+        //    var item = new PaginationModel();
+        //    int pages = searchFilter.page == 0 ? 1 : searchFilter.page;
+        //    item.CurrentPage = searchFilter.page == 0 ? "1" : searchFilter.page.ToString();
+
+        //    int page_prev = pages - 1;
+        //    //int t_record = int.Parse(items.Count.ToString()) / int.Parse(page_size);
+
+        //    double t_records = Math.Ceiling(double.Parse(totalItems.ToString()) / double.Parse(page_size));
+        //    int page_next = searchFilter.page >= t_records ? 0 : pages + 1;
+        //    item.NextPage = items.Count % int.Parse(page_size) >= 0 ? page_next.ToString() : "0";
+        //    item.PrevPage = pages == 1 ? "0" : page_prev.ToString();
+        //    item.TotalPage = t_records.ToString();
+        //    item.PageSize = page_size;
+        //    item.TotalRecord = totalItems.ToString();
+        //    item.items = items;
+        //    result.Add(item);
+
+        //    return result;
+        //}
+
+        private List<PaginationModel> buildUserPagedModel(UserBaseSearchModel searchFilter)
         {
             var items = (dynamic)null;
             int totalItems = 0;
             int totalPages = 0;
             string page_size = searchFilter.pageSize == 0 ? "10" : searchFilter.pageSize.ToString();
-            if (searchFilter.searchParam == null || searchFilter.searchParam == string.Empty)
+
+            var userlist = dbmet.getUserList().ToList();
+
+            //no center to base the list on
+            if (string.IsNullOrEmpty(searchFilter.centerId))
             {
-
-                var userlist = dbmet.getUserList().ToList();
-                totalItems = userlist.Count;
-                totalPages = (int)Math.Ceiling((double)totalItems / int.Parse(page_size.ToString()));
-                items = userlist.Skip((searchFilter.page - 1) * int.Parse(page_size.ToString())).Take(int.Parse(page_size.ToString())).ToList();
+                userlist.Clear();
             }
-            else
+            if (!searchFilter.centerId.Equals("0") && !string.IsNullOrEmpty(searchFilter.centerId))
             {
-                var userlist = dbmet.getUserList().Where(a => a.Username.ToLower().Contains( searchFilter.searchParam.ToLower()) || a.Fname.ToLower().Contains(searchFilter.searchParam.ToLower()) ||
-                a.Lname.ToLower().Contains(searchFilter.searchParam.ToLower()) || a.Mname.ToLower().Contains(searchFilter.searchParam.ToLower())).ToList();
-                totalItems = userlist.Count;
-                totalPages = (int)Math.Ceiling((double)totalItems / int.Parse(page_size.ToString()));
-                items = userlist.Skip((searchFilter.page - 1) * int.Parse(page_size.ToString())).Take(int.Parse(page_size.ToString())).ToList();
+                userlist = userlist.Where(a => a.CenterId.ToString().Equals(searchFilter.centerId)).ToList();
             }
+            if (!string.IsNullOrEmpty(searchFilter.dateRegistered))
+            {
+                if (DateTime.TryParse(searchFilter.dateRegistered, out DateTime registeredDate))
+                {
+                    // Filter userlist by date, ignoring the time part
+                    userlist = userlist.Where(a => DateTime.Parse(a.DateCreated).Date == registeredDate.Date).ToList();
+                }
+                else
+                {
+                    userlist.Clear();
+                }
+            }
+                if (searchFilter.searchParam == null || searchFilter.searchParam == string.Empty)
+                {
+                    totalItems = userlist.Count;
+                    totalPages = (int)Math.Ceiling((double)totalItems / int.Parse(page_size.ToString()));
+                    items = userlist.Skip((searchFilter.page - 1) * int.Parse(page_size.ToString())).Take(int.Parse(page_size.ToString())).ToList();
+                }
+                else
+                {
+                    userlist = userlist.Where(a => a.Username.ToLower().Contains(searchFilter.searchParam.ToLower()) || a.Fname.ToLower().Contains(searchFilter.searchParam.ToLower()) ||
+                    a.Lname.ToLower().Contains(searchFilter.searchParam.ToLower()) || a.Mname.ToLower().Contains(searchFilter.searchParam.ToLower())).ToList();
+                    totalItems = userlist.Count;
+                    totalPages = (int)Math.Ceiling((double)totalItems / int.Parse(page_size.ToString()));
+                    items = userlist.Skip((searchFilter.page - 1) * int.Parse(page_size.ToString())).Take(int.Parse(page_size.ToString())).ToList();
+                }
 
-            var result = new List<PaginationModel>();
-            var item = new PaginationModel();
-            int pages = searchFilter.page == 0 ? 1 : searchFilter.page;
-            item.CurrentPage = searchFilter.page == 0 ? "1" : searchFilter.page.ToString();
 
-            int page_prev = pages - 1;
-            //int t_record = int.Parse(items.Count.ToString()) / int.Parse(page_size);
+                var result = new List<PaginationModel>();
+                var item = new PaginationModel();
+                int pages = searchFilter.page == 0 ? 1 : searchFilter.page;
+                item.CurrentPage = searchFilter.page == 0 ? "1" : searchFilter.page.ToString();
 
-            double t_records = Math.Ceiling(double.Parse(totalItems.ToString()) / double.Parse(page_size));
-            int page_next = searchFilter.page >= t_records ? 0 : pages + 1;
-            item.NextPage = items.Count % int.Parse(page_size) >= 0 ? page_next.ToString() : "0";
-            item.PrevPage = pages == 1 ? "0" : page_prev.ToString();
-            item.TotalPage = t_records.ToString();
-            item.PageSize = page_size;
-            item.TotalRecord = totalItems.ToString();
-            item.items = items;
-            result.Add(item);
+                int page_prev = pages - 1;
+                //int t_record = int.Parse(items.Count.ToString()) / int.Parse(page_size);
 
-            return result;
+                double t_records = Math.Ceiling(double.Parse(totalItems.ToString()) / double.Parse(page_size));
+                int page_next = searchFilter.page >= t_records ? 0 : pages + 1;
+                item.NextPage = items.Count % int.Parse(page_size) >= 0 ? page_next.ToString() : "0";
+                item.PrevPage = pages == 1 ? "0" : page_prev.ToString();
+                item.TotalPage = t_records.ToString();
+                item.PageSize = page_size;
+                item.TotalRecord = totalItems.ToString();
+                item.items = items;
+                result.Add(item);
+
+                return result;
+            
         }
+
         //POST: user/listAll
         [HttpPost]
-        public async Task<ActionResult<IEnumerable<TblUsersModel>>> listAll(CommonSearchFilterModel searchFilter)
+        public async Task<ActionResult<IEnumerable<TblUsersModel>>> listAll(UserBaseSearchModel searchFilter)
         {
             {
-
-
                 try
                 {
                     var result = buildUserPagedModel(searchFilter);
@@ -537,6 +630,7 @@ namespace API_PCC.Controllers
             return test;
         }
 
+        
         // POST: user/rememberPassword
         [HttpPost]
         public async Task<IActionResult> rememberPassword(String token)

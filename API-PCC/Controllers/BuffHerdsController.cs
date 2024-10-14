@@ -512,15 +512,17 @@ namespace API_PCC.Controllers
         [HttpPost]
         public async Task<ActionResult<HBuffHerd>> Import(List<BuffHerdRegistrationModel> registrationModel)
         {
+            List<HBuffHerd> listOfImportedHerd = new List<HBuffHerd>();
 
             try
             {
 
 
-                string filePath = @"C:\data\herdsave.json"; // Replace with your desired file path
-                dbmet.insertlgos(filePath, JsonSerializer.Serialize(registrationModel));
+               
                 for(int x= 0;x < registrationModel.Count; x++)
                 {
+                    string filePath = @"C:\data\herdsave.json"; // Replace with your desired file path
+                    dbmet.insertlgos(filePath, JsonSerializer.Serialize(registrationModel[x]));
                     DataTable buffHerdDuplicateCheck = db.SelectDb_WithParamAndSorting(QueryBuilder.buildHerdDuplicateCheckSaveQuery(), null, populateSqlParameters(registrationModel[x].HerdName, registrationModel[x].HerdCode));
 
                     if (buffHerdDuplicateCheck.Rows.Count > 0)
@@ -639,9 +641,9 @@ namespace API_PCC.Controllers
                     }
                 }
                
-                status = "Herd successfully registered!";
+                status = "Herd successfully registered " + registrationModel.Count + " Records";
                 dbmet.InsertAuditTrail("Save Buffalo Herd" + " " + status, DateTime.Now.ToString("yyyy-MM-dd"), "Herd Module", registrationModel[0].CreatedBy, "0");
-
+                //return Ok("Import", status + registrationModel.Count + " Records");
                 return Ok(status);
             }
             catch (Exception ex)
@@ -865,60 +867,17 @@ namespace API_PCC.Controllers
 
             if (buffHerdDuplicateCheck.Rows.Count > 0)
             {
-                return Conflict("Entity already exists!!");
-            }
-
-            try
-            {
-                herdModel.DeleteFlag = !herdModel.DeleteFlag;
-                herdModel.DateDeleted = null;
-                herdModel.DeletedBy = "";
-                herdModel.DateRestored = DateTime.Now;
-                herdModel.RestoredBy = restorationModel.restoredBy;
-
-                _context.Entry(herdModel).State = EntityState.Modified;
-                await _context.SaveChangesAsync();
-                return Ok("Restoration Successful!");
-            }
-            catch (Exception ex)
-            {
-
-                return Problem(ex.GetBaseException().ToString());
-            }
-        }
-        [HttpPost]
-        public async Task<IActionResult> restoremultiple(List<RestorationModel> restorationModel)
-        {
-            string status = "";
-            for(int x = 0;x < restorationModel.Count;x++)
-            { 
-                DataTable dt = db.SelectDb_WithParamAndSorting(QueryBuilder.buildHerdSelectForRestoreQuery(), null, populateSqlParameters(restorationModel[x].id));
-
-                if (dt.Rows.Count == 0)
-                {
-                    return Conflict("No deleted records matched!");
-                }
-
-                var herdModel = convertDataRowToHerdModel(dt.Rows[0]);
-
-                DataTable buffHerdDuplicateCheck = db.SelectDb_WithParamAndSorting(QueryBuilder.buildHerdDuplicateCheckSaveQuery(), null, populateSqlParameters(herdModel.HerdName, herdModel.HerdCode));
-
-                if (buffHerdDuplicateCheck.Rows.Count > 0)
-                {
-                    return Conflict("Entity already exists!!");
-                }
-
                 try
                 {
                     herdModel.DeleteFlag = !herdModel.DeleteFlag;
                     herdModel.DateDeleted = null;
                     herdModel.DeletedBy = "";
                     herdModel.DateRestored = DateTime.Now;
-                    herdModel.RestoredBy = restorationModel[x].restoredBy;
+                    herdModel.RestoredBy = restorationModel.restoredBy;
 
                     _context.Entry(herdModel).State = EntityState.Modified;
                     await _context.SaveChangesAsync();
-                    status = "Restoration Successful!";
+                    
                 }
                 catch (Exception ex)
                 {
@@ -926,8 +885,113 @@ namespace API_PCC.Controllers
                     return Problem(ex.GetBaseException().ToString());
                 }
             }
-            return Ok(status);
+            return Ok("Restoration Successful!");
+
         }
+
+        //[HttpPost]
+        //public async Task<IActionResult> restoremultiple(List<RestorationModel> restorationModel)
+        //{
+        //    string status = "";
+        //    for(int x = 0;x < restorationModel.Count;x++)
+        //    { 
+        //        DataTable dt = db.SelectDb_WithParamAndSorting(QueryBuilder.buildHerdSelectForRestoreQuery(), null, populateSqlParameters(restorationModel[x].id));
+
+        //        if (dt.Rows.Count == 0)
+        //        {
+        //            return Conflict("No deleted records matched!");
+        //        }
+
+        //        var herdModel = convertDataRowToHerdModel(dt.Rows[0]);
+
+        //        DataTable buffHerdDuplicateCheck = db.SelectDb_WithParamAndSorting(QueryBuilder.buildHerdDuplicateCheckSaveQuery(), null, populateSqlParameters(herdModel.HerdName, herdModel.HerdCode));
+
+        //        if (buffHerdDuplicateCheck.Rows.Count > 0)
+        //        {
+        //            return Conflict("Entity already exists!!");
+        //        }
+
+        //        try
+        //        {
+        //            herdModel.DeleteFlag = !herdModel.DeleteFlag;
+        //            herdModel.DateDeleted = null;
+        //            herdModel.DeletedBy = "";
+        //            herdModel.DateRestored = DateTime.Now;
+        //            herdModel.RestoredBy = restorationModel[x].restoredBy;
+
+        //            _context.Entry(herdModel).State = EntityState.Modified;
+        //            await _context.SaveChangesAsync();
+        //            status = "Restoration Successful!";
+        //        }
+        //        catch (Exception ex)
+        //        {
+
+        //            return Problem(ex.GetBaseException().ToString());
+        //        }
+        //    }
+        //    return Ok(status);
+        //}
+
+        [HttpPost]
+        public async Task<IActionResult> restoremultiple(List<RestorationModel> restorationModels)
+        {
+            if (restorationModels == null || restorationModels.Count == 0)
+            {
+                return BadRequest("No records provided for restoration.");
+            }
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            List<string> errorMessages = new List<string>();
+
+            try
+            {
+                foreach (var restorationModel in restorationModels)
+                {
+                    DataTable dt = db.SelectDb_WithParamAndSorting(QueryBuilder.buildHerdSelectForRestoreQuery(), null, populateSqlParameters(restorationModel.id));
+
+                    if (dt.Rows.Count == 0)
+                    {
+                        errorMessages.Add($"No deleted records matched for id {restorationModel.id}.");
+                        continue;
+                    }
+
+                    var herdModel = convertDataRowToHerdModel(dt.Rows[0]);
+
+                    DataTable buffHerdDuplicateCheck = db.SelectDb_WithParamAndSorting(QueryBuilder.buildHerdDuplicateCheckSaveQuery(), null, populateSqlParameters(herdModel.HerdName, herdModel.HerdCode));
+
+                    if (buffHerdDuplicateCheck.Rows.Count > 0)
+                    {
+                        errorMessages.Add($"Entity already exists for HerdName {herdModel.HerdName} and HerdCode {herdModel.HerdCode}.");
+                        continue;
+                    }
+
+                    herdModel.DeleteFlag = false; 
+                    herdModel.DateDeleted = null;
+                    herdModel.DeletedBy = "";
+                    herdModel.DateRestored = DateTime.Now;
+                    herdModel.RestoredBy = restorationModel.restoredBy;
+
+                    _context.Entry(herdModel).State = EntityState.Modified;
+                    await _context.SaveChangesAsync();
+                }
+
+                if (errorMessages.Count > 0)
+                {
+                    await transaction.RollbackAsync();
+                    return Conflict(string.Join("; ", errorMessages));
+                }
+
+                await transaction.CommitAsync();
+                return Ok("Restoration Successful!");
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                return Problem(ex.GetBaseException().ToString());
+            }
+        }
+
+
         private List<HerdPagedModel> buildHerdPagedModel(BuffHerdSearchFilterModel searchFilter, List<HBuffHerd> buffHerdList)
         {
 

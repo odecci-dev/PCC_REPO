@@ -10,7 +10,8 @@
         public string Rfid { get; set; }
         public string Sex { get; set; }
         public string Breed { get; set; }
-        public string? BloodComposition { get; set; }
+        public string? BloodComp { get; set; }
+        public string? BloodResult { get; set; }
         public DateTime? DateOfBirth { get; set; }
         public string CountryOfBirth { get; set; }
         public string BirthType { get; set; }

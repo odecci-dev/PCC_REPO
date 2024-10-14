@@ -69,7 +69,7 @@ namespace API_PCC.Controllers
         {
             public string searchParam { get; set; }
             public string Sex { get; set; }
-            public string? centerid { get; set; }
+            public int? centerid { get; set; }
             public string? userid { get; set; }
             public int page { get; set; }
             public int pageSize { get; set; }
@@ -103,10 +103,10 @@ namespace API_PCC.Controllers
                 {
                     buffanimal = buffanimal.Where(a =>
                  a.Sex.ToUpper() == searchFilter.Sex.ToUpper()
-                 && a.Animal_ID_Number == searchFilter.searchParam
-                 || a.Animal_Name == searchFilter.searchParam
-                 || a.BreedRegistryNumber == searchFilter.searchParam.ToUpper()
-                 || a.RFID_Number == searchFilter.searchParam).ToList();
+                 && a.Animal_ID_Number.ToUpper().Contains(searchFilter.searchParam.ToUpper())
+                 || a.Animal_Name.ToUpper().Contains(searchFilter.searchParam.ToUpper())
+                 || a.BreedRegistryNumber.ToUpper().Contains(searchFilter.searchParam.ToUpper())
+                 || a.RFID_Number.ToUpper().Contains(searchFilter.searchParam)).ToList();
                 }
                 else if (searchFilter.Sex != null && searchFilter.Sex != "")
                 {
@@ -115,10 +115,10 @@ namespace API_PCC.Controllers
                 else if (searchFilter.searchParam != null && searchFilter.searchParam != "")
                 {
                     buffanimal = buffanimal.Where(a =>
-                             a.Animal_ID_Number.Contains(searchFilter.searchParam)
-                             || a.Animal_Name.Contains(searchFilter.searchParam)
-                             || a.BreedRegistryNumber.ToUpper().Contains(searchFilter.searchParam.ToUpper())
-                             || a.RFID_Number.Contains(searchFilter.searchParam)).ToList();
+                             a.Animal_ID_Number.ToUpper().Contains(searchFilter.searchParam.ToUpper())
+                 || a.Animal_Name.ToUpper().Contains(searchFilter.searchParam.ToUpper())
+                 || a.BreedRegistryNumber.ToUpper().Contains(searchFilter.searchParam.ToUpper())
+                 || a.RFID_Number.ToUpper().Contains(searchFilter.searchParam)).ToList();
 
 
                 }
@@ -250,14 +250,51 @@ namespace API_PCC.Controllers
         private IQueryable<ABuffAnimal> buildAnimalSearchQuery(BuffAnimalSearchFilterModel searchFilter)
         {
             IQueryable<ABuffAnimal> query = _context.ABuffAnimals;
+            IQueryable<HBuffHerd> queryh = _context.HBuffHerds;
+            IQueryable<TblCenterModel> queryc = _context.TblCenterModels;
+            IQueryable<TblFarmOwner> queryfo = _context.TblFarmOwners;
+            IQueryable<TblUsersModel> queryu = _context.TblUsersModels;
 
             query = query.Where(animal => !animal.DeleteFlag);
             // assuming that you return all records when nothing is specified in the filter
 
+            if (searchFilter.centerid != 0)
+                query = query.Join(queryh,
+                                  animal => animal.HerdCode,
+                                  herd => herd.HerdCode,
+                                  (animal, herd) => new { animal, herd })
+                             .Join(_context.TblCenterModels,
+                                   combined => combined.herd.Center,
+                                   center => center.Id,
+                                   (combined, center) => new { combined.animal, center })
+                             .Where(result => result.center.Id== searchFilter.centerid)
+                             .Select(result => result.animal);
+
+            if (!searchFilter.userid.IsNullOrEmpty())
+                query = query.Join(queryh,
+                                   animal => animal.HerdCode,
+                                   herd => herd.HerdCode,
+                                   (animal, herd) => new { animal, herd })
+                             .Join(queryfo,
+                                   combined => combined.herd.Owner,
+                                   owner => owner.Id,
+                                   (combined, farmOwner) => new { combined.animal, farmOwner }) 
+                             .Join(queryu,
+                                   combined => combined.farmOwner.Id, 
+                                   ownerUser => ownerUser.Id,
+                                   (combined, farmOwnerUser) => new { combined.animal, combined.farmOwner, farmOwnerUser }) 
+                             .Where(result => result.farmOwner.FirstName == result.farmOwnerUser.Fname &&
+                                              result.farmOwner.LastName == result.farmOwnerUser.Lname &&
+                                              result.farmOwner.Address == result.farmOwnerUser.Address &&
+                                              result.farmOwnerUser.isFarmer == true &&
+                                              result.farmOwnerUser.Id.ToString().Contains(searchFilter.userid))
+                             .Select(result => result.animal);
+
             if (!searchFilter.searchValue.IsNullOrEmpty())
                 query = query.Where(animal =>
                                animal.AnimalIdNumber.Contains(searchFilter.searchValue) ||
-                               animal.AnimalName.Contains(searchFilter.searchValue));
+                               animal.AnimalName.Contains(searchFilter.searchValue) ||
+                               animal.HerdCode.Contains(searchFilter.searchValue));
 
             if (!searchFilter.filterBy.BloodCode.IsNullOrEmpty())
                 query = query.Where(animal => animal.BloodCode.Equals(searchFilter.filterBy.BloodCode));
@@ -306,6 +343,11 @@ namespace API_PCC.Controllers
                 query = query.Where(animal =>
                                animal.AnimalIdNumber.Contains(searchFilter.searchValue) ||
                                animal.AnimalName.Contains(searchFilter.searchValue));
+
+            if (searchFilter.centerid != 0) {
+                query = query.Where(animal =>
+                               animal.HerdCode.Equals("test01"));
+            }
 
             if (!searchFilter.filterBy.BloodCode.IsNullOrEmpty())
                 query = query.Where(animal => animal.BloodCode.Equals(searchFilter.filterBy.BloodCode));
@@ -602,12 +644,7 @@ namespace API_PCC.Controllers
         {
 
             string filePath = @"C:\data\savebuffanimal.json"; // Replace with your desired file path
-
-
-
             dbmet.insertlgos(filePath, JsonSerializer.Serialize(buffAnimalRegistrationModel));
-
-
 
             if (_context.ABuffAnimals == null)
             {
@@ -784,6 +821,9 @@ namespace API_PCC.Controllers
         public async Task<ActionResult<ABuffAnimal>> import(List<BuffAnimalRegistrationModel> buffAnimalRegistrationModel)
         {
 
+            //added list of imported animals
+            List<ABuffAnimal> listOfImportedAnimal = new List<ABuffAnimal>();
+
             string filePath = @"C:\data\savebuffanimal.json"; // Replace with your desired file path
             try
             {
@@ -885,6 +925,7 @@ namespace API_PCC.Controllers
                             }
                         }
 
+
                         var savedEntity = _context.ABuffAnimals.Add(buffAnimal).Entity;
 
                         await _context.SaveChangesAsync();
@@ -909,6 +950,9 @@ namespace API_PCC.Controllers
                         var lastInsertedId = entry.Property(e => e.Id).CurrentValue;
                         dbmet.InsertAuditTrail("Save New BuffAnimal ID: " + lastInsertedId + "", DateTime.Now.ToString("yyyy-MM-dd"), "Animal Module", buffAnimal.CreatedBy, "0");
 
+                        //added list of imported animals
+                        listOfImportedAnimal.Add(savedEntity);
+
                     }
                     catch (BadHttpRequestException ex)
                     {
@@ -919,7 +963,8 @@ namespace API_PCC.Controllers
                         return Problem(ex.GetBaseException().ToString());
                     }
                 }
-                return Ok("Import Successfully");
+                //added list of imported animals
+                return CreatedAtAction("import", listOfImportedAnimal);
             }
             catch (BadHttpRequestException ex)
             {
@@ -1108,7 +1153,7 @@ namespace API_PCC.Controllers
 
             try
             {
-                aBuffAnimal.DeleteFlag = !aBuffAnimal.DeleteFlag;
+                aBuffAnimal.DeleteFlag = false;
                 aBuffAnimal.DateDeleted = null;
                 aBuffAnimal.DeletedBy = "";
                 aBuffAnimal.DateRestored = DateTime.Now;
@@ -1125,6 +1170,7 @@ namespace API_PCC.Controllers
                 return Problem(ex.GetBaseException().ToString());
             }
         }
+
         [HttpPost]
         public async Task<IActionResult> RestoreMultiple(List<RestorationModel> restorationModel)
         {
@@ -1133,17 +1179,18 @@ namespace API_PCC.Controllers
             {
                 return Problem("Entity set 'PCC_DEVContext.BuffAnimal' is null!");
             }
-            for(int x= 0; x<restorationModel.Count;x++)
+            for(int x= 0; x < restorationModel.Count; x++)
             {
                 var aBuffAnimal = await _context.ABuffAnimals.FindAsync(restorationModel[x].id);
                 if (aBuffAnimal == null || !aBuffAnimal.DeleteFlag)
                 {
-                    return Conflict("No deleted records matched!");
+                    dbmet.InsertAuditTrail("Restore BuffAnimal ID: " + aBuffAnimal.Id + " : can't restore, record is not deleted", DateTime.Now.ToString("yyyy-MM-dd"), "Animal Module", aBuffAnimal.RestoredBy, "0");
+                    //return Conflict("No deleted records matched!");
                 }
 
                 try
                 {
-                    aBuffAnimal.DeleteFlag = !aBuffAnimal.DeleteFlag;
+                    aBuffAnimal.DeleteFlag = false;
                     aBuffAnimal.DateDeleted = null;
                     aBuffAnimal.DeletedBy = "";
                     aBuffAnimal.DateRestored = DateTime.Now;
@@ -1498,6 +1545,23 @@ namespace API_PCC.Controllers
 
         private ABuffAnimal buildBuffAnimal(BuffAnimalRegistrationModel registrationModel)
         {
+
+            string _dateDiff = registrationModel.DateOfBirth.HasValue
+                        ? ((registrationModel.DateOfBirth.Value - new DateTime(1899, 12, 30)).Days).ToString()
+                        : "0";
+
+            string _animalIdNumber = registrationModel.AnimalIdNumber;
+
+            string _sex = registrationModel.Sex.Substring(0, 1).ToUpper();
+
+
+            string? _breedCode = _context.ABreeds
+                                .Where(b => b.Id.ToString().Equals(registrationModel.BreedCode))
+                                .Select(b => b.BreedCode)
+                                .FirstOrDefault();
+
+            string BreedRegistryNumber = _animalIdNumber + _dateDiff + _sex + _breedCode;
+
             var buffAnimal = new ABuffAnimal()
             {
                 AnimalIdNumber = registrationModel.AnimalIdNumber,
@@ -1513,9 +1577,11 @@ namespace API_PCC.Controllers
                 DateOfAcquisition = registrationModel.DateOfAcquisition,
                 Marking = registrationModel.Marking,
                 TypeOfOwnership = registrationModel.TypeOfOwnership,
-                BloodCode = registrationModel.BloodCode
-                // To be calculated BloodCode = registrationModel.BloodCode
+                BloodCode = registrationModel.BloodCode,
+
+                breedRegistryNumber = string.IsNullOrEmpty(registrationModel.breedRegistryNumber) ? BreedRegistryNumber : registrationModel.breedRegistryNumber
             };
+
             return buffAnimal;
         }
 

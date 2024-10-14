@@ -65,5 +65,6 @@ public partial class TblUsersModel
     public string RememberToken { get; set; }
     public int UserType { get; set; }
     public bool isFarmer { get; set; }
+    public string HerdId { get; set; }
     public ICollection<UserAccessModel>? userAccessModels { get; set; } = new List<UserAccessModel>();
 }
