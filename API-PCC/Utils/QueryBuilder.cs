@@ -137,7 +137,7 @@ namespace API_PCC.Utils
             if (searchFilterModel.breedType != null && searchFilterModel.breedType.Any())
             {
                 joins += @$" LEFT JOIN tbl_FarmerBreedType 
-                    ON Tbl_Farmers.Id = tbl_FarmerBreedType.Farmer_Id";
+            ON Tbl_Farmers.Id = tbl_FarmerBreedType.Farmer_Id";
 
                 var breedTypeParams = string.Join(", ", searchFilterModel.breedType.Select((_, i) => $"@BreedType{i}"));
                 whereClause += $" AND tbl_FarmerBreedType.BreedType_Id IN ({breedTypeParams})";
@@ -146,7 +146,7 @@ namespace API_PCC.Utils
             if (searchFilterModel.feedingSystem != null && searchFilterModel.feedingSystem.Any())
             {
                 joins += @$" LEFT JOIN tbl_FarmerFeedingSystem 
-                    ON Tbl_Farmers.Id = tbl_FarmerFeedingSystem.Farmer_Id";
+            ON Tbl_Farmers.Id = tbl_FarmerFeedingSystem.Farmer_Id";
 
                 var feedingSystemParams = string.Join(", ", searchFilterModel.feedingSystem.Select((_, i) => $"@FeedingSystem{i}"));
                 whereClause += $" AND tbl_FarmerFeedingSystem.FeedingSystem_Id IN ({feedingSystemParams})";
