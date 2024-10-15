@@ -441,39 +441,49 @@ namespace API_PCC.Controllers
 
         private SqlParameter[] populateSqlParameters(FarmerSearchFilterModel searchFilter)
         {
-
             var sqlParameters = new List<SqlParameter>();
 
-            if (searchFilter.searchValue != null && searchFilter.searchValue != "")
+            if (!string.IsNullOrEmpty(searchFilter.searchValue))
             {
                 sqlParameters.Add(new SqlParameter
                 {
-                    ParameterName = "SearchParam",
-                    Value = searchFilter.searchValue ?? Convert.DBNull,
+                    ParameterName = "@SearchParam",
+                    Value = searchFilter.searchValue,
                     SqlDbType = System.Data.SqlDbType.VarChar,
                 });
             }
-            if (searchFilter.breedType != null && searchFilter.breedType != "")
+
+            if (searchFilter.breedType != null && searchFilter.breedType.Any())
             {
-                sqlParameters.Add(new SqlParameter
+                for (int i = 0; i < searchFilter.breedType.Count; i++)
                 {
-                    ParameterName = "BreedType",
-                    Value = searchFilter.breedType ?? Convert.DBNull,
-                    SqlDbType = System.Data.SqlDbType.VarChar,
-                });
+                    sqlParameters.Add(new SqlParameter
+                    {
+                        ParameterName = $"@BreedType{i}",
+                        Value = int.Parse(searchFilter.breedType[i]),
+                        SqlDbType = System.Data.SqlDbType.Int,
+                    });
+                }
             }
-            if (searchFilter.feedingSystem != null && searchFilter.feedingSystem != "")
+
+            if (searchFilter.feedingSystem != null && searchFilter.feedingSystem.Any())
             {
-                sqlParameters.Add(new SqlParameter
+                for (int i = 0; i < searchFilter.feedingSystem.Count; i++)
                 {
-                    ParameterName = "FeedingSystem",
-                    Value = searchFilter.feedingSystem ?? Convert.DBNull,
-                    SqlDbType = System.Data.SqlDbType.VarChar,
-                });
+                    sqlParameters.Add(new SqlParameter
+                    {
+                        ParameterName = $"@FeedingSystem{i}",
+                        Value = int.Parse(searchFilter.feedingSystem[i]),
+                        SqlDbType = System.Data.SqlDbType.Int,
+                    });
+                }
             }
 
             return sqlParameters.ToArray();
         }
+
+
+
         private SqlParameter[] populateSqlParameters(int id)
         {
 
