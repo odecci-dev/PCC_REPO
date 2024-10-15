@@ -16,23 +16,21 @@ namespace API_PCC.EntityModels
 
         public string MobileNumber { get; set; }
 
-        public int User_Id { get; set; }
-        public int Group_Id { get; set; }
-        public bool Is_Manager { get; set; }
-        public int FarmerClassification_Id { get; set; }
-        public int FarmerAffliation_Id { get; set; }
+        public int UserId { get; set; }
+        public int GroupId { get; set; }
+        public bool IsManager { get; set; }
+        public int FarmerClassificationId { get; set; }
+        public int FarmerAffliationId { get; set; }
         public List<string> FarmerBreedTypes { get; set; }
         public List<string> FarmerFeedingSystems { get; set; }
-        //public virtual ICollection<TblFarmerBreedType>? FarmerBreedTypes { get; set; } = new List<TblFarmerBreedType>();
-        //public virtual ICollection<FarmerFeedingSystem>? FarmerFeedingSystems { get; set; } = new List<FarmerFeedingSystem>();
-        public int Created_By { get; set; }
-        public DateTime Created_At { get; set; }
-        public int? Updated_By { get; set; }
-        public DateTime Updated_At { get; set; }
-        public int? Deleted_By { get; set; }
+        public int CreatedBy { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public int? UpdatedBy { get; set; }
+        public DateTime? UpdatedAt { get; set; }
+        public int? DeletedBy { get; set; }
         public string Email { get; set; }
-        public DateTime? Deleted_At { get; set; }
-        public bool Is_Deleted { get; set; }
+        public DateTime? DeletedAt { get; set; }
+        public bool IsDeleted { get; set; }
 
     }
 }
