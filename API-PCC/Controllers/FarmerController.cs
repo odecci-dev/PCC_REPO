@@ -36,14 +36,14 @@ namespace API_PCC.Controllers
             public string? Address { get; set; }
             public string? TelephoneNumber { get; set; }
             public string? MobileNumber { get; set; }
-            public int? UserId { get; set; }
+            public int UserId { get; set; }
             public List<FeedingTypeId> FeedingSystemId { get; set; }
             public List<BreedTypeId> BreedTypeId { get; set; }
             public int FarmerAffliation_Id { get; set; }
             public int FarmerClassification_Id { get; set; }
-            public int? CreatedBy { get; set; }
-            public string? Group_Id { get; set; }
-            public bool? Is_Manager { get; set; }
+            public int CreatedBy { get; set; }
+            public int? Group_Id { get; set; }
+            public bool Is_Manager { get; set; }
             public string? Email { get; set; }
 
         }
@@ -57,9 +57,9 @@ namespace API_PCC.Controllers
             public string? MobileNumber { get; set; }
             public int FarmerAffliation_Id { get; set; }
             public int FarmerClassification_Id { get; set; }
-            public int? CreatedBy { get; set; }
+            public int CreatedBy { get; set; }
             public string? Group_Id { get; set; }
-            public bool? Is_Manager { get; set; }
+            public bool Is_Manager { get; set; }
             public string? Email { get; set; }
             public int Updated_By { get; set; }
             public DateTime Updated_At { get; set; }
@@ -100,48 +100,29 @@ namespace API_PCC.Controllers
 
             try
             {
-                // Insert Farmer and get the generated ID
-                string sqlFarmer = $@"
-                INSERT INTO [dbo].[Tbl_Farmers]
-                       ([FirstName]
-                       ,[LastName]
-                       ,[Address]
-                       ,[TelephoneNumber]
-                       ,[MobileNumber]
-                       ,[User_Id]
-                       ,[Group_Id]
-                       ,[Is_Manager]
-                       ,[FarmerClassification_Id]
-                       ,[FarmerAffliation_Id]
-                       ,[Created_By]
-                       ,[Created_At]
-                       ,[Email]
-                       ,[Deleted_At]
-                       ,[Is_Deleted])
-                 VALUES
-                   ('{model.FirstName}',
-                    '{model.LastName}',
-                    '{model.Address}',
-                    '{model.TelephoneNumber}',
-                    '{model.MobileNumber}',
-                    '{model.UserId}',
-                    '{model.Group_Id}',
-                    '{model.Is_Manager}',
-                    '{model.FarmerClassification_Id}',
-                    '{model.FarmerAffliation_Id}',
-                    '{model.CreatedBy}',
-                    '{DateTime.Now:yyyy-MM-dd}',
-                    '{model.Email}',
-                    '{DateTime.Now:yyyy-MM-dd}',
-                    '0');";
+                var farmer = new TblFarmers
+                {
+                    FirstName = model.FirstName,
+                    LastName = model.LastName,
+                    Address = model.Address,
+                    TelephoneNumber = model.TelephoneNumber,
+                    MobileNumber = model.MobileNumber,
+                    User_Id = model.UserId,
+                    Group_Id = model.Group_Id,
+                    Is_Manager = model.Is_Manager,
+                    FarmerClassification_Id = model.FarmerClassification_Id,
+                    FarmerAffliation_Id = model.FarmerAffliation_Id,
+                    Created_By = model.CreatedBy,
+                    Created_At = DateTime.Now,
+                    Email = model.Email,
+                    Deleted_At = DateTime.Now,
+                    Is_Deleted = false
+                };
 
-                db.DB_WithParam(sqlFarmer);
+                _context.Tbl_Farmers.Add(farmer);
+                await _context.SaveChangesAsync();
 
-                // Retrieve the ID of the newly inserted Farmer
-                generatedFarmerId = _context.Tbl_Farmers
-                    .OrderByDescending(f => f.Created_At)
-                    .Select(f => f.Id)
-                    .FirstOrDefault();
+                generatedFarmerId = farmer.Id;
 
                 // Check and prepare Feeding System insertions
                 foreach (var feed in model.FeedingSystemId)
@@ -431,7 +412,7 @@ namespace API_PCC.Controllers
             {
                 farmerModel.Group_Id = int.Parse(farmerInfo.Group_Id);
             }
-            if (farmerInfo.Is_Manager.HasValue)
+            if (!string.IsNullOrEmpty(farmerInfo.Is_Manager.ToString()))
             {
                 farmerModel.Is_Manager = (bool)farmerInfo.Is_Manager;
             }
