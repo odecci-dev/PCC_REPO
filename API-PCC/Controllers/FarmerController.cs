@@ -36,14 +36,14 @@ namespace API_PCC.Controllers
             public string? Address { get; set; }
             public string? TelephoneNumber { get; set; }
             public string? MobileNumber { get; set; }
-            public int? UserId { get; set; }
+            public int UserId { get; set; }
             public List<FeedingTypeId> FeedingSystemId { get; set; }
             public List<BreedTypeId> BreedTypeId { get; set; }
             public int FarmerAffliation_Id { get; set; }
             public int FarmerClassification_Id { get; set; }
-            public int? CreatedBy { get; set; }
-            public string? Group_Id { get; set; }
-            public bool? Is_Manager { get; set; }
+            public int CreatedBy { get; set; }
+            public int? Group_Id { get; set; }
+            public bool Is_Manager { get; set; }
             public string? Email { get; set; }
 
         }
@@ -57,9 +57,9 @@ namespace API_PCC.Controllers
             public string? MobileNumber { get; set; }
             public int FarmerAffliation_Id { get; set; }
             public int FarmerClassification_Id { get; set; }
-            public int? CreatedBy { get; set; }
+            public int CreatedBy { get; set; }
             public string? Group_Id { get; set; }
-            public bool? Is_Manager { get; set; }
+            public bool Is_Manager { get; set; }
             public string? Email { get; set; }
             public int Updated_By { get; set; }
             public DateTime Updated_At { get; set; }
@@ -100,48 +100,29 @@ namespace API_PCC.Controllers
 
             try
             {
-                // Insert Farmer and get the generated ID
-                string sqlFarmer = $@"
-                INSERT INTO [dbo].[Tbl_Farmers]
-                       ([FirstName]
-                       ,[LastName]
-                       ,[Address]
-                       ,[TelephoneNumber]
-                       ,[MobileNumber]
-                       ,[User_Id]
-                       ,[Group_Id]
-                       ,[Is_Manager]
-                       ,[FarmerClassification_Id]
-                       ,[FarmerAffliation_Id]
-                       ,[Created_By]
-                       ,[Created_At]
-                       ,[Email]
-                       ,[Deleted_At]
-                       ,[Is_Deleted])
-                 VALUES
-                   ('{model.FirstName}',
-                    '{model.LastName}',
-                    '{model.Address}',
-                    '{model.TelephoneNumber}',
-                    '{model.MobileNumber}',
-                    '{model.UserId}',
-                    '{model.Group_Id}',
-                    '{model.Is_Manager}',
-                    '{model.FarmerClassification_Id}',
-                    '{model.FarmerAffliation_Id}',
-                    '{model.CreatedBy}',
-                    '{DateTime.Now:yyyy-MM-dd}',
-                    '{model.Email}',
-                    '{DateTime.Now:yyyy-MM-dd}',
-                    '0');";
+                var farmer = new TblFarmers
+                {
+                    FirstName = model.FirstName,
+                    LastName = model.LastName,
+                    Address = model.Address,
+                    TelephoneNumber = model.TelephoneNumber,
+                    MobileNumber = model.MobileNumber,
+                    User_Id = model.UserId,
+                    Group_Id = model.Group_Id,
+                    Is_Manager = model.Is_Manager,
+                    FarmerClassification_Id = model.FarmerClassification_Id,
+                    FarmerAffliation_Id = model.FarmerAffliation_Id,
+                    Created_By = model.CreatedBy,
+                    Created_At = DateTime.Now,
+                    Email = model.Email,
+                    Deleted_At = DateTime.Now,
+                    Is_Deleted = false
+                };
 
-                db.DB_WithParam(sqlFarmer);
+                _context.Tbl_Farmers.Add(farmer);
+                await _context.SaveChangesAsync();
 
-                // Retrieve the ID of the newly inserted Farmer
-                generatedFarmerId = _context.Tbl_Farmers
-                    .OrderByDescending(f => f.Created_At)
-                    .Select(f => f.Id)
-                    .FirstOrDefault();
+                generatedFarmerId = farmer.Id;
 
                 // Check and prepare Feeding System insertions
                 foreach (var feed in model.FeedingSystemId)
@@ -323,8 +304,8 @@ namespace API_PCC.Controllers
                 farmer.Is_Deleted = !farmer.Is_Deleted;
                 farmer.Deleted_At = null;
                 farmer.Deleted_By = null;
-                //farmer.DateRestored = DateTime.Now;
-                //farmer.RestoredBy = restorationModel.restoredBy;
+                farmer.Restored_At = DateTime.Now;
+                farmer.Restored_By = int.Parse(restorationModel.restoredBy);
 
                 _context.Entry(farmer).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
@@ -370,13 +351,13 @@ namespace API_PCC.Controllers
             return result;
         }
 
-        private List<TblFarmers> convertDataRowListToFarmerlist(List<DataRow> dataRowList)
+        private List<TblFarmerVM> convertDataRowListToFarmerlist(List<DataRow> dataRowList)
         {
-            var farmerList = new List<TblFarmers>();
+            var farmerList = new List<TblFarmerVM>();
 
             foreach (DataRow dataRow in dataRowList)
             {
-                var farmerModel = DataRowToObject.ToObject<TblFarmers>(dataRow);
+                var farmerModel = DataRowToObject.ToObject<TblFarmerVM>(dataRow);
 
                 string sql = $@"SELECT DISTINCT BreedType_Id FROM tbl_FarmerBreedType WHERE Farmer_Id = '{farmerModel.Id}'";
                 DataTable farmerBreedTypeList = db.SelectDb(sql).Tables[0];
@@ -396,8 +377,8 @@ namespace API_PCC.Controllers
                     feedingTypeCodes.Add(row["FeedingSystem_Id"].ToString());
                 }
 
-                farmerModel.BreedTypeCodes = breedTypeCodes;
-                farmerModel.FeedingSystemCodes = feedingTypeCodes;
+                farmerModel.FarmerBreedTypes = breedTypeCodes;
+                farmerModel.FarmerFeedingSystems = feedingTypeCodes;
 
                 farmerList.Add(farmerModel);
             }
@@ -431,7 +412,7 @@ namespace API_PCC.Controllers
             {
                 farmerModel.Group_Id = int.Parse(farmerInfo.Group_Id);
             }
-            if (farmerInfo.Is_Manager.HasValue)
+            if (!string.IsNullOrEmpty(farmerInfo.Is_Manager.ToString()))
             {
                 farmerModel.Is_Manager = (bool)farmerInfo.Is_Manager;
             }
@@ -460,39 +441,49 @@ namespace API_PCC.Controllers
 
         private SqlParameter[] populateSqlParameters(FarmerSearchFilterModel searchFilter)
         {
-
             var sqlParameters = new List<SqlParameter>();
 
-            if (searchFilter.searchValue != null && searchFilter.searchValue != "")
+            if (!string.IsNullOrEmpty(searchFilter.searchValue))
             {
                 sqlParameters.Add(new SqlParameter
                 {
-                    ParameterName = "SearchParam",
-                    Value = searchFilter.searchValue ?? Convert.DBNull,
+                    ParameterName = "@SearchParam",
+                    Value = searchFilter.searchValue,
                     SqlDbType = System.Data.SqlDbType.VarChar,
                 });
             }
-            if (searchFilter.breedType != null && searchFilter.breedType != "")
+
+            if (searchFilter.breedType != null && searchFilter.breedType.Any())
             {
-                sqlParameters.Add(new SqlParameter
+                for (int i = 0; i < searchFilter.breedType.Count; i++)
                 {
-                    ParameterName = "BreedType",
-                    Value = searchFilter.breedType ?? Convert.DBNull,
-                    SqlDbType = System.Data.SqlDbType.VarChar,
-                });
+                    sqlParameters.Add(new SqlParameter
+                    {
+                        ParameterName = $"@BreedType{i}",
+                        Value = int.Parse(searchFilter.breedType[i]),
+                        SqlDbType = System.Data.SqlDbType.Int,
+                    });
+                }
             }
-            if (searchFilter.feedingSystem != null && searchFilter.feedingSystem != "")
+
+            if (searchFilter.feedingSystem != null && searchFilter.feedingSystem.Any())
             {
-                sqlParameters.Add(new SqlParameter
+                for (int i = 0; i < searchFilter.feedingSystem.Count; i++)
                 {
-                    ParameterName = "FeedingSystem",
-                    Value = searchFilter.feedingSystem ?? Convert.DBNull,
-                    SqlDbType = System.Data.SqlDbType.VarChar,
-                });
+                    sqlParameters.Add(new SqlParameter
+                    {
+                        ParameterName = $"@FeedingSystem{i}",
+                        Value = int.Parse(searchFilter.feedingSystem[i]),
+                        SqlDbType = System.Data.SqlDbType.Int,
+                    });
+                }
             }
 
             return sqlParameters.ToArray();
         }
+
+
+
         private SqlParameter[] populateSqlParameters(int id)
         {
 
