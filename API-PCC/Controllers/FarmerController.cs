@@ -304,8 +304,8 @@ namespace API_PCC.Controllers
                 farmer.Is_Deleted = !farmer.Is_Deleted;
                 farmer.Deleted_At = null;
                 farmer.Deleted_By = null;
-                //farmer.DateRestored = DateTime.Now;
-                //farmer.RestoredBy = restorationModel.restoredBy;
+                farmer.Restored_At = DateTime.Now;
+                farmer.Restored_By = int.Parse(restorationModel.restoredBy);
 
                 _context.Entry(farmer).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
