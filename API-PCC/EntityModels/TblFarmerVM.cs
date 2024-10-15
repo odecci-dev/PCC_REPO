@@ -17,7 +17,7 @@ namespace API_PCC.EntityModels
         public string MobileNumber { get; set; }
 
         public int UserId { get; set; }
-        public int GroupId { get; set; }
+        public int? GroupId { get; set; }
         public bool IsManager { get; set; }
         public int FarmerClassificationId { get; set; }
         public int FarmerAffliationId { get; set; }
