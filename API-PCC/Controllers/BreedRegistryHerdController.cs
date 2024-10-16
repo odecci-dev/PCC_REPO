@@ -623,11 +623,15 @@ namespace API_PCC.Controllers
                 HerdName = registrationModel.HerdName,
                 HerdCode = registrationModel.HerdCode,
                 HerdSize = registrationModel.HerdSize,
-                FarmAffilCode = registrationModel.FarmAffilCode,
-                HerdClassDesc = registrationModel.HerdClassDesc,
+                //FarmAffilCode = registrationModel.FarmAffilCode,
+                FarmAffilCode = "0",
+                HerdClassDesc = "0",
                 FarmManager = registrationModel.FarmManager,
                 FarmAddress = registrationModel.FarmAddress,
-                OrganizationName = registrationModel.OrganizationName,
+                FarmerId = int.Parse(registrationModel.FarmManager),
+                Owner = int.Parse(registrationModel.FarmManager),
+                //OrganizationName = registrationModel.OrganizationName,
+                OrganizationName = null,
                 Center = int.Parse(registrationModel.Center),
                 Photo = registrationModel.Photo
             };
