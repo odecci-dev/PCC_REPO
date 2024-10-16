@@ -443,22 +443,28 @@ namespace API_PCC.Controllers
             {
                 var farmerModel = DataRowToObject.ToObject<TblFarmerVM>(dataRow);
 
-                string sql = $@"SELECT DISTINCT BreedType_Id FROM tbl_FarmerBreedType WHERE Farmer_Id = '{farmerModel.Id}'";
+                //string sql = $@"SELECT DISTINCT BreedType_Id FROM tbl_FarmerBreedType WHERE Farmer_Id = '{farmerModel.Id}'";
+                string sql = $@"SELECT DISTINCT tbl_FarmerBreedType.BreedType_Id, A_Breed.Breed_Desc FROM tbl_FarmerBreedType 
+                                JOIN A_Breed ON tbl_FarmerBreedType.BreedType_Id = A_Breed.id  
+                                WHERE Farmer_Id = '{farmerModel.Id}'";
                 DataTable farmerBreedTypeList = db.SelectDb(sql).Tables[0];
 
                 var breedTypeCodes = new List<string>();
                 foreach (DataRow row in farmerBreedTypeList.Rows)
                 {
-                    breedTypeCodes.Add(row["BreedType_Id"].ToString());
+                    breedTypeCodes.Add(row["Breed_Desc"].ToString());
                 }
 
-                string sql2 = $@"SELECT DISTINCT FeedingSystem_Id FROM tbl_FarmerFeedingSystem WHERE Farmer_Id = '{farmerModel.Id}'";
+                //string sql2 = $@"SELECT DISTINCT FeedingSystem_Id FROM tbl_FarmerFeedingSystem WHERE Farmer_Id = '{farmerModel.Id}'";
+                string sql2 = $@"SELECT DISTINCT tbl_FarmerFeedingSystem.FeedingSystem_Id, H_Feeding_System.FeedingSystemDesc FROM tbl_FarmerFeedingSystem
+                                JOIN H_Feeding_System ON tbl_FarmerFeedingSystem.FeedingSystem_Id = H_Feeding_System.id 
+                                WHERE Farmer_Id = '{farmerModel.Id}'";
                 DataTable farmerFeedingSystemList = db.SelectDb(sql2).Tables[0];
 
                 var feedingTypeCodes = new List<string>();
                 foreach (DataRow row in farmerFeedingSystemList.Rows)
                 {
-                    feedingTypeCodes.Add(row["FeedingSystem_Id"].ToString());
+                    feedingTypeCodes.Add(row["FeedingSystemDesc"].ToString());
                 }
 
                 farmerModel.FarmerBreedTypes = breedTypeCodes;
