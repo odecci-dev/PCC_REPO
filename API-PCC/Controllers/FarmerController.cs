@@ -97,50 +97,49 @@ namespace API_PCC.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<IEnumerable<FarmerView>>> view()
+        public async Task<ActionResult<FarmerView>> View(int id)
         {
             try
             {
-                List<FarmerView> farmerViewList = new List<FarmerView>();
+                var farmer = await _context.Tbl_Farmers
+                    .Where(f => !f.Is_Deleted && f.Id == id)
+                    .FirstOrDefaultAsync();
 
-                var farmers = await _context.Tbl_Farmers
-                    .Where(f => !f.Is_Deleted)
-                    .ToListAsync();
-
-                foreach (var farmer in farmers)
+                if (farmer == null)
                 {
-                    var breedTypes = await _context.TblFarmerBreedTypes
-                        .Where(b => b.FarmerId == farmer.Id)
-                        .Select(b => b.BreedTypeId)
-                        .Distinct()
-                        .ToListAsync();
-
-                    var feedingSystems = await _context.tbl_FarmerFeedingSystem
-                        .Where(f => f.Farmer_Id == farmer.Id)
-                        .Select(f => f.FeedingSystem_Id)
-                        .Distinct()
-                        .ToListAsync();
-
-                    var farmerView = new FarmerView
-                    {
-                        FarmerId = farmer.Id,
-                        UserId = farmer.User_Id,
-                        FarmerAffiliation_Id = farmer.FarmerAffliation_Id,
-                        FarmerClassification_Id = farmer.FarmerClassification_Id,
-                        FarmerBreedTypes = breedTypes,
-                        FarmerFeedingSystems = feedingSystems
-                    };
-
-                    farmerViewList.Add(farmerView);
+                    return NotFound($"Farmer with ID {id} not found.");
                 }
 
-                return Ok(farmerViewList);
+                var breedTypes = await _context.TblFarmerBreedTypes
+                    .Where(b => b.FarmerId == farmer.Id)
+                    .Select(b => b.BreedTypeId)
+                    .Distinct()
+                    .ToListAsync();
+
+                var feedingSystems = await _context.tbl_FarmerFeedingSystem
+                    .Where(f => f.Farmer_Id == farmer.Id)
+                    .Select(f => f.FeedingSystem_Id)
+                    .Distinct()
+                    .ToListAsync();
+
+                var farmerView = new FarmerView
+                {
+                    FarmerId = farmer.Id,
+                    UserId = farmer.User_Id,
+                    FarmerAffiliation_Id = farmer.FarmerAffliation_Id,
+                    FarmerClassification_Id = farmer.FarmerClassification_Id,
+                    FarmerBreedTypes = breedTypes,
+                    FarmerFeedingSystems = feedingSystems
+                };
+
+                return Ok(farmerView);
             }
             catch (Exception ex)
             {
                 return Problem(ex.GetBaseException().ToString());
             }
         }
+
 
 
         [HttpPost]
