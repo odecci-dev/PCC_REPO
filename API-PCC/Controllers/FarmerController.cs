@@ -65,6 +65,17 @@ namespace API_PCC.Controllers
             public DateTime Updated_At { get; set; }
         }
 
+        public class FarmerView
+        {
+            public int FarmerId { get; set; }
+            public int UserId { get; set; }
+            public List<int?> FarmerBreedTypes { get; set; }
+            public List<int> FarmerFeedingSystems { get; set; }
+            public int FarmerAffiliation_Id { get; set; }
+            public int FarmerClassification_Id { get; set; }
+
+        }
+
         private void sanitizeInput(CommonSearchFilterModel searchFilter)
         {
             searchFilter.searchParam = StringSanitizer.sanitizeString(searchFilter.searchParam);
@@ -84,6 +95,51 @@ namespace API_PCC.Controllers
                 return Problem(ex.GetBaseException().ToString());
             }
         }
+
+        [HttpPost]
+        public async Task<ActionResult<IEnumerable<FarmerView>>> view()
+        {
+            try
+            {
+                List<FarmerView> farmerViewList = new List<FarmerView>();
+
+                var farmers = await _context.Tbl_Farmers
+                    .Where(f => !f.Is_Deleted)
+                    .ToListAsync();
+
+                foreach (var farmer in farmers)
+                {
+                    var breedTypes = await _context.TblFarmerBreedTypes
+                        .Where(b => b.FarmerId == farmer.Id)
+                        .Select(b => b.BreedTypeId)
+                        .ToListAsync();
+
+                    var feedingSystems = await _context.tbl_FarmerFeedingSystem
+                        .Where(f => f.Farmer_Id == farmer.Id)
+                        .Select(f => f.FeedingSystem_Id)
+                        .ToListAsync();
+
+                    var farmerView = new FarmerView
+                    {
+                        FarmerId = farmer.Id,
+                        UserId = farmer.User_Id,
+                        FarmerAffiliation_Id = farmer.FarmerAffliation_Id,
+                        FarmerClassification_Id = farmer.FarmerClassification_Id,
+                        FarmerBreedTypes = breedTypes,
+                        FarmerFeedingSystems = feedingSystems
+                    };
+
+                    farmerViewList.Add(farmerView);
+                }
+
+                return Ok(farmerViewList);
+            }
+            catch (Exception ex)
+            {
+                return Problem(ex.GetBaseException().ToString());
+            }
+        }
+
 
         [HttpPost]
         public async Task<IActionResult> save(FarmerSaveInfoModel model)
@@ -124,7 +180,6 @@ namespace API_PCC.Controllers
 
                 generatedFarmerId = farmer.Id;
 
-                // Check and prepare Feeding System insertions
                 foreach (var feed in model.FeedingSystemId)
                 {
                     string isfeeding = $@"SELECT * FROM H_Feeding_System WHERE Id = '{feed.FarmerFeedId}'";
@@ -150,7 +205,6 @@ namespace API_PCC.Controllers
                         '{DateTime.Now:yyyy-MM-dd}');";
                 }
 
-                // Check and prepare Breed Type insertions
                 foreach (var breed in model.BreedTypeId)
                 {
                     string isbreed = $@"SELECT * FROM A_Breed WHERE Id = '{breed.FarmerBreedId}'";
@@ -176,7 +230,6 @@ namespace API_PCC.Controllers
                         '{DateTime.Now:yyyy-MM-dd}');";
                 }
 
-                // Check affiliation and classification validity
                 string isAffil = $@"SELECT * FROM H_Farmer_Affiliation WHERE Id = '{model.FarmerAffliation_Id}'";
                 DataTable tbl_isAffil = db.SelectDb(isAffil).Tables[0];
 
@@ -192,7 +245,6 @@ namespace API_PCC.Controllers
                     return BadRequest("Classification System Id does not exist");
                 }
 
-                // Execute all insertions if there are any
                 if (!string.IsNullOrEmpty(Insert))
                 {
                     db.DB_WithParam(Insert);
@@ -220,11 +272,8 @@ namespace API_PCC.Controllers
             }
 
 
-            //var buffHerd = convertDataRowToHerdModel(buffHerdDataTable.Rows[0]);
-
             DataTable farmerDuplicateCheck = db.SelectDb_WithParamAndSorting(QueryBuilder.buildFarmerSearchByFirstNameLastNameAddress(), null, populateSqlParameters(id, farmerUpdateInfo));
 
-            // check for duplication
             if (farmerDuplicateCheck.Rows.Count > 0)
             {
                 status = "Entity already exists";
