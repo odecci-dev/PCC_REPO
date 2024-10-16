@@ -9,7 +9,7 @@ public partial class TblFarmerBreedType
 {
     public int? Id { get; set; }
 
-    public int? FarmerId { get; set; }
+    public int FarmerId { get; set; }
 
     public int? BreedTypeId { get; set; }
 
