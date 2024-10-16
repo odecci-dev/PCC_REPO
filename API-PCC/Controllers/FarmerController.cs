@@ -37,6 +37,7 @@ namespace API_PCC.Controllers
             public string? TelephoneNumber { get; set; }
             public string? MobileNumber { get; set; }
             public int UserId { get; set; }
+            public int HerdId { get; set; }
             public List<FeedingTypeId> FeedingSystemId { get; set; }
             public List<BreedTypeId> BreedTypeId { get; set; }
             public int FarmerAffliation_Id { get; set; }
@@ -55,9 +56,9 @@ namespace API_PCC.Controllers
             public string? Address { get; set; }
             public string? TelephoneNumber { get; set; }
             public string? MobileNumber { get; set; }
+            public int HerdId { get; set; }
             public int FarmerAffliation_Id { get; set; }
             public int FarmerClassification_Id { get; set; }
-            public int CreatedBy { get; set; }
             public string? Group_Id { get; set; }
             public bool Is_Manager { get; set; }
             public string? Email { get; set; }
@@ -97,7 +98,7 @@ namespace API_PCC.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<FarmerView>> View(int id)
+        public async Task<ActionResult<FarmerView>> view(int id)
         {
             try
             {
@@ -148,14 +149,58 @@ namespace API_PCC.Controllers
             int generatedFarmerId = 0;
             string Insert = "";
             string isfarmer = $@"SELECT * FROM tbl_Farmers WHERE User_Id = '{model.UserId}'";
-
             DataTable tbl_isfarmer = db.SelectDb(isfarmer).Tables[0];
+
+            string herd = $@"SELECT * FROM H_Buff_Herd WHERE id = '{model.HerdId}'";
+            DataTable tbl_herd = db.SelectDb(herd).Tables[0];
+
+            string isAffil = $@"SELECT * FROM H_Farmer_Affiliation WHERE Id = '{model.FarmerAffliation_Id}'";
+            DataTable tbl_isAffil = db.SelectDb(isAffil).Tables[0];
+
+            string isclassification = $@"SELECT * FROM H_Farmer_Affiliation WHERE Id = '{model.FarmerClassification_Id}'";
+            DataTable tbl_isclassificationl = db.SelectDb(isclassification).Tables[0];
+
             if (tbl_isfarmer.Rows.Count != 0)
             {
                 return BadRequest("User is already a Farmer");
             }
 
-            try
+            if (tbl_herd.Rows.Count == 0)
+            {
+                return BadRequest("Herd id does not exist");
+            }
+
+            if (tbl_isAffil.Rows.Count == 0)
+            {
+                return BadRequest("Affiliation System Id does not exist");
+            }
+            if (tbl_isclassificationl.Rows.Count == 0)
+            {
+                return BadRequest("Classification System Id does not exist");
+            }
+
+            foreach (var feed in model.FeedingSystemId)
+            {
+                string isfeeding = $@"SELECT * FROM H_Feeding_System WHERE Id = '{feed.FarmerFeedId}'";
+                DataTable tbl_isfeeding = db.SelectDb(isfeeding).Tables[0];
+
+                if (tbl_isfeeding.Rows.Count == 0)
+                {
+                    return BadRequest($"Feeding System Id {feed.FarmerFeedId} does not exist");
+                }
+            }
+            foreach (var breed in model.BreedTypeId)
+            {
+                string isbreed = $@"SELECT * FROM A_Breed WHERE Id = '{breed.FarmerBreedId}'";
+                DataTable tbl_isbreed = db.SelectDb(isbreed).Tables[0];
+
+                if (tbl_isbreed.Rows.Count == 0)
+                {
+                    return BadRequest($"Breed Type Id {breed.FarmerBreedId} does not exist");
+                }
+            }
+
+                try
             {
                 var farmer = new TblFarmers
                 {
@@ -231,25 +276,14 @@ namespace API_PCC.Controllers
                         '{DateTime.Now:yyyy-MM-dd}');";
                 }
 
-                string isAffil = $@"SELECT * FROM H_Farmer_Affiliation WHERE Id = '{model.FarmerAffliation_Id}'";
-                DataTable tbl_isAffil = db.SelectDb(isAffil).Tables[0];
+                Insert += $@"INSERT INTO tbl_HerdFarmer (Herd_Id, Farmer_Id) VALUES ({model.HerdId}, {generatedFarmerId});";
 
-                string isclassification = $@"SELECT * FROM H_Farmer_Affiliation WHERE Id = '{model.FarmerClassification_Id}'";
-                DataTable tbl_isclassificationl = db.SelectDb(isclassification).Tables[0];
-
-                if (tbl_isAffil.Rows.Count == 0)
-                {
-                    return BadRequest("Affiliation System Id does not exist");
-                }
-                if (tbl_isclassificationl.Rows.Count == 0)
-                {
-                    return BadRequest("Classification System Id does not exist");
-                }
 
                 if (!string.IsNullOrEmpty(Insert))
                 {
                     db.DB_WithParam(Insert);
                 }
+
             }
             catch (Exception ex)
             {
