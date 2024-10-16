@@ -7,6 +7,7 @@ namespace API_PCC.DtoModels
         public string? HerdName { get; set; }
         public string? HerdCode { get; set; }
         public int? HerdSize { get; set; }
+        public int? GroupId { get; set; }
         public List<string>? BreedTypeCodes { get; set; }
         public string? FarmAffilCode { get; set; }
         public string? HerdClassDesc { get; set; }

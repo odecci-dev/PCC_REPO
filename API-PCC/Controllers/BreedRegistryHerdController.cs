@@ -623,6 +623,7 @@ namespace API_PCC.Controllers
                 HerdName = registrationModel.HerdName,
                 HerdCode = registrationModel.HerdCode,
                 HerdSize = registrationModel.HerdSize,
+                GroupId = registrationModel.GroupId,
                 //FarmAffilCode = registrationModel.FarmAffilCode,
                 FarmAffilCode = "0",
                 HerdClassDesc = "0",
@@ -838,6 +839,10 @@ namespace API_PCC.Controllers
             if (updateModel.Photo != null && updateModel.Photo != "")
             {
                 buffHerd.Photo = updateModel.Photo;
+            }
+            if (updateModel.GroupId != null && updateModel.GroupId != null)
+            {
+                buffHerd.GroupId = updateModel.GroupId;
             }
             return buffHerd;
         }
