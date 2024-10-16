@@ -112,11 +112,13 @@ namespace API_PCC.Controllers
                     var breedTypes = await _context.TblFarmerBreedTypes
                         .Where(b => b.FarmerId == farmer.Id)
                         .Select(b => b.BreedTypeId)
+                        .Distinct()
                         .ToListAsync();
 
                     var feedingSystems = await _context.tbl_FarmerFeedingSystem
                         .Where(f => f.Farmer_Id == farmer.Id)
                         .Select(f => f.FeedingSystem_Id)
+                        .Distinct()
                         .ToListAsync();
 
                     var farmerView = new FarmerView
