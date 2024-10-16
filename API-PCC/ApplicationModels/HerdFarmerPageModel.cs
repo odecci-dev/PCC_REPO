@@ -7,6 +7,6 @@ namespace API_PCC.ApplicationModels
 {
     public class HerdFarmerPageModel : PaginationModel
     {
-        public List<BreedRegistryHerd> items { get; set; }
+        public List<BreedRegistryHerd2> items { get; set; }
     }
 }

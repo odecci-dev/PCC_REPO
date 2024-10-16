@@ -22,6 +22,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Linq.Dynamic.Core;
 using System.Linq;
 using API_PCC.DtoModels;
+using static API_PCC.Controllers.BreedRegistryHerdController;
 namespace API_PCC.Controllers
 {
     [Authorize("ApiKey")]
@@ -116,6 +117,22 @@ namespace API_PCC.Controllers
             public string FarmManager { get; set; }
         }
 
+        public class BreedRegistryHerd2
+        {
+            public int HerdId { get; set; }
+            public int? FarmerId { get; set; }
+            public string HerdName { get; set; }
+            public string HerdCode { get; set; }
+            public DateTime? DateofApplication { get; set; }
+            public string FarmerName { get; set; }
+            public string FarmAddress { get; set; }
+            public string Photo { get; set; }
+            public string CreatedBy { get; set; }
+            public string DateCreated { get; set; }
+            public string FarmerCount { get; set; }
+            public string FarmManager { get; set; }
+        }
+
         public class FarmerHerdSearch
         {
             public string? searchParam { get; set; }
@@ -183,28 +200,53 @@ namespace API_PCC.Controllers
 
             return finalResult;
         }
-        private IQueryable<BreedRegistryHerd> FarmerHerdList()
-        {
-            return (from a in _context.TblHerdFarmers
-                    join b in _context.HBuffHerds on a.HerdId equals b.Id into HerdFarmers
-                    from b in HerdFarmers.DefaultIfEmpty()
-                    join c in _context.Tbl_Farmers on a.FarmerId equals c.Id into farmowner
-                    from c in farmowner.DefaultIfEmpty()
-                    join g in _context.TblUsersModels on a.FarmerId equals g.Id into Users
-                    from g in Users.DefaultIfEmpty()
-                    let cowLevel = _context.ABuffAnimals.Count(buff => buff.FarmerId == a.FarmerId)
-                    let farmManager = _context.Tbl_Farmers.Any(farm => farm.Is_Manager && farm.Id == a.FarmerId)
+        //private IQueryable<BreedRegistryHerd> FarmerHerdList()
+        //{
+        //    return (from a in _context.TblHerdFarmers
+        //            join b in _context.HBuffHerds on a.HerdId equals b.Id into HerdFarmers
+        //            from b in HerdFarmers.DefaultIfEmpty()
+        //            join c in _context.Tbl_Farmers on a.FarmerId equals c.Id into farmowner
+        //            from c in farmowner.DefaultIfEmpty()
+        //            join g in _context.TblUsersModels on a.FarmerId equals g.Id into Users
+        //            from g in Users.DefaultIfEmpty()
+        //            let cowLevel = _context.ABuffAnimals.Count(buff => buff.FarmerId == a.FarmerId)
+        //            let farmManager = _context.Tbl_Farmers.Any(farm => farm.Is_Manager && farm.Id == a.FarmerId)
 
-                    select new BreedRegistryHerd
+        //            select new BreedRegistryHerd
+        //            {
+        //                HerdId = b != null ? b.Id : 0,
+        //                HerdCode = b != null ? b.HerdCode : "Unknown Herd",
+        //                HerdName = b != null ? b.HerdName : "Unknown Herd",
+        //                DateofApplication = b != null ? b.DateCreated : DateTime.MinValue,
+        //                FarmerName = (g != null ? g.Lname : "Unknown") + ", " + (g != null ? g.Fname : "Unknown"),
+        //                FarmerId = a.FarmerId, // This should always be valid since a is not null in this context
+        //                CowLevel = cowLevel.ToString(),
+        //                FarmManager = farmManager ? "1" : "0",
+        //            }).AsQueryable();
+        //}
+
+        private IQueryable<BreedRegistryHerd2> FarmerHerdList()
+        {
+            return (from herd in _context.HBuffHerds
+                    join herdFarmer in _context.TblHerdFarmers on herd.Id equals herdFarmer.HerdId into herdFarmersGroup
+                    from herdFarmer in herdFarmersGroup.DefaultIfEmpty()
+                    join detailedHerd in _context.HBuffHerds on herdFarmer.HerdId equals detailedHerd.Id into detailedHerdGroup
+                    from detailedHerd in detailedHerdGroup.DefaultIfEmpty()
+                    join farmer in _context.Tbl_Farmers on herdFarmer.FarmerId equals farmer.Id into farmerGroup
+                    from farmer in farmerGroup.DefaultIfEmpty()
+                    join user in _context.TblUsersModels on herdFarmer.FarmerId equals user.Id into userGroup
+                    from user in userGroup.DefaultIfEmpty()
+
+
+                    select new BreedRegistryHerd2
                     {
-                        HerdId = b != null ? b.Id : 0,
-                        HerdCode = b != null ? b.HerdCode : "Unknown Herd",
-                        HerdName = b != null ? b.HerdName : "Unknown Herd",
-                        DateofApplication = b != null ? b.DateCreated : DateTime.MinValue,
-                        FarmerName = (g != null ? g.Lname : "Unknown") + ", " + (g != null ? g.Fname : "Unknown"),
-                        FarmerId = a.FarmerId, // This should always be valid since a is not null in this context
-                        CowLevel = cowLevel.ToString(),
-                        FarmManager = farmManager ? "1" : "0",
+                        HerdId = detailedHerd != null ? detailedHerd.Id : 0,
+                        HerdCode = detailedHerd != null ? detailedHerd.HerdCode : "Unknown Herd",
+                        HerdName = detailedHerd != null ? detailedHerd.HerdName : "Unknown Herd",
+                        DateofApplication = detailedHerd != null ? detailedHerd.DateCreated : DateTime.MinValue,
+                        FarmerId = herdFarmer.FarmerId, // This should always be valid since a is not null in this context
+                        FarmerCount = _context.TblHerdFarmers.Count(farmer => farmer.HerdId == herd.Id).ToString(),
+                        FarmManager = _context.Tbl_Farmers.Any(farm => farm.Is_Manager && farm.Id == herdFarmer.FarmerId) ? "1" : "0"
                     }).AsQueryable();
         }
 
@@ -543,10 +585,10 @@ namespace API_PCC.Controllers
                 return Problem(ex.GetBaseException().ToString());
             }
         }
-        private IQueryable<BreedRegistryHerd> buildfarmerherd(FarmerHerdSearch searchFilter)
+        private IQueryable<BreedRegistryHerd2> buildfarmerherd(FarmerHerdSearch searchFilter)
         {
             // Get the base query as IQueryable
-            IQueryable<BreedRegistryHerd> query = FarmerHerdList().AsQueryable();
+            IQueryable<BreedRegistryHerd2> query = FarmerHerdList().AsQueryable();
 
             // Apply search parameter if provided
             if (!string.IsNullOrWhiteSpace(searchFilter.searchParam))
@@ -583,7 +625,7 @@ namespace API_PCC.Controllers
             return query;
         }
 
-        private List<HerdFarmerPageModel> FormList(FarmerHerdSearch searchFilter, List<BreedRegistryHerd> farmerherdlist)
+        private List<HerdFarmerPageModel> FormList(FarmerHerdSearch searchFilter, List<BreedRegistryHerd2> farmerherdlist)
         {
 
 
