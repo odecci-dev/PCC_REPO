@@ -233,7 +233,7 @@ namespace API_PCC.Controllers
                         join farmer in _context.Tbl_Farmers on herd.FarmerId equals farmer.Id
                         join herdfarmer in _context.TblHerdFarmers on farmer.Id equals herdfarmer.FarmerId into farmerGroup
                         from herdfarmer in farmerGroup.DefaultIfEmpty()
-                        where herd.DeleteFlag == false 
+                        where herd.DeleteFlag == false
 
 
                     select new BreedRegistryHerd2
