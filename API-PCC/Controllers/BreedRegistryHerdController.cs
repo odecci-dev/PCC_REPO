@@ -120,9 +120,10 @@ namespace API_PCC.Controllers
         public class BreedRegistryHerd2
         {
             public int HerdId { get; set; }
-            public int? FarmerId { get; set; }
+            //public int? FarmerId { get; set; }
             public string HerdName { get; set; }
             public string HerdCode { get; set; }
+            public int Center { get; set; }
             public DateTime? DateofApplication { get; set; }
             public string FarmerName { get; set; }
             public string FarmAddress { get; set; }
@@ -138,6 +139,7 @@ namespace API_PCC.Controllers
             public string? searchParam { get; set; }
             public int page { get; set; }
             public int pageSize { get; set; }
+            public int center { get; set; }
             public String DateofApplication { get; set; }
             public SortByModel sortBy { get; set; }
 
@@ -228,25 +230,24 @@ namespace API_PCC.Controllers
         private IQueryable<BreedRegistryHerd2> FarmerHerdList()
         {
             return (from herd in _context.HBuffHerds
-                    join herdFarmer in _context.TblHerdFarmers on herd.Id equals herdFarmer.HerdId into herdFarmersGroup
-                    from herdFarmer in herdFarmersGroup.DefaultIfEmpty()
-                    join detailedHerd in _context.HBuffHerds on herdFarmer.HerdId equals detailedHerd.Id into detailedHerdGroup
-                    from detailedHerd in detailedHerdGroup.DefaultIfEmpty()
-                    join farmer in _context.Tbl_Farmers on herdFarmer.FarmerId equals farmer.Id into farmerGroup
-                    from farmer in farmerGroup.DefaultIfEmpty()
-                    join user in _context.TblUsersModels on herdFarmer.FarmerId equals user.Id into userGroup
-                    from user in userGroup.DefaultIfEmpty()
+                        join farmer in _context.Tbl_Farmers on herd.FarmerId equals farmer.Id into herdFarmerGroup
+                        from farmer in herdFarmerGroup.DefaultIfEmpty()
+                        join herdfarmer in _context.TblHerdFarmers on farmer.Id equals herdfarmer.FarmerId into farmerGroup
+                        from herdfarmer in farmerGroup.DefaultIfEmpty()
+                        where herd.DeleteFlag == false 
 
 
                     select new BreedRegistryHerd2
                     {
-                        HerdId = detailedHerd != null ? detailedHerd.Id : 0,
-                        HerdCode = detailedHerd != null ? detailedHerd.HerdCode : "Unknown Herd",
-                        HerdName = detailedHerd != null ? detailedHerd.HerdName : "Unknown Herd",
-                        DateofApplication = detailedHerd != null ? detailedHerd.DateCreated : DateTime.MinValue,
-                        FarmerId = herdFarmer.FarmerId, // This should always be valid since a is not null in this context
+                        HerdId = herd.Id,
+                        HerdCode = herd.HerdCode,
+                        HerdName = herd.HerdName,
+                        Center = (int)herd.Center,
+                        DateofApplication = herd.DateCreated,
                         FarmerCount = _context.TblHerdFarmers.Count(farmer => farmer.HerdId == herd.Id).ToString(),
-                        FarmManager = _context.Tbl_Farmers.Any(farm => farm.Is_Manager && farm.Id == herdFarmer.FarmerId) ? "1" : "0"
+                        FarmManager = farmer != null
+                             ? farmer.LastName + ", " + farmer.FirstName
+                             : "Unknown Manager",
                     }).AsQueryable();
         }
 
@@ -591,6 +592,11 @@ namespace API_PCC.Controllers
             IQueryable<BreedRegistryHerd2> query = FarmerHerdList().AsQueryable();
 
             // Apply search parameter if provided
+            if (!string.IsNullOrWhiteSpace(searchFilter.center.ToString()) && searchFilter.center != 0)
+            {
+                query = query.Where(herd => herd.Center == searchFilter.center);
+            }
+
             if (!string.IsNullOrWhiteSpace(searchFilter.searchParam))
             {
                 query = query.Where(herd => herd.HerdName.Contains(searchFilter.searchParam));
@@ -619,7 +625,8 @@ namespace API_PCC.Controllers
             else
             {
                 // Default sort by FarmerId descending
-                query = query.OrderByDescending(herd => herd.FarmerId);
+                //query = query.OrderByDescending(herd => herd.FarmerId);
+                query = query.OrderByDescending(herd => herd.HerdId);
             }
 
             return query;

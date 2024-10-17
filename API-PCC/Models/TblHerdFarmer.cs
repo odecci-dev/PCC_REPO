@@ -7,7 +7,7 @@ namespace API_PCC.EntityModels;
 
 public partial class TblHerdFarmer
 {
-    public int? Id { get; set; }
+    public int Id { get; set; }
 
     public int? HerdId { get; set; }
 
