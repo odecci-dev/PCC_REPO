@@ -247,7 +247,7 @@ namespace API_PCC.Controllers
                         FarmManager = farmer != null
                              ? farmer.LastName + ", " + farmer.FirstName
                              : "Unknown Manager",
-                    }).AsQueryable();
+                    }).Distinct().AsQueryable();
         }
 
         private void validateDate(BuffHerdSearchFilterModel searchFilter)
