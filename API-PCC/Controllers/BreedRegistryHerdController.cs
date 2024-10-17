@@ -23,6 +23,7 @@ using System.Linq.Dynamic.Core;
 using System.Linq;
 using API_PCC.DtoModels;
 using static API_PCC.Controllers.BreedRegistryHerdController;
+using Antlr4.Runtime;
 namespace API_PCC.Controllers
 {
     [Authorize("ApiKey")]
@@ -202,6 +203,7 @@ namespace API_PCC.Controllers
 
             return finalResult;
         }
+
         //private IQueryable<BreedRegistryHerd> FarmerHerdList()
         //{
         //    return (from a in _context.TblHerdFarmers
@@ -487,97 +489,206 @@ namespace API_PCC.Controllers
 
 
         }
+        //[HttpPost]
+        //public async Task<IActionResult> View(string HerdCode)
+        //{
+        //    try
+        //    {
+        //        var farmer_pivot = (from a in _context.TblHerdFarmers
+        //                            join b in _context.HBuffHerds on a.HerdId equals b.Id into Herd
+        //                            from b in Herd.DefaultIfEmpty()
+        //                            join c in _context.Tbl_Farmers on a.FarmerId equals c.Id into farmers
+        //                            from c in farmers.DefaultIfEmpty()
+        //                            select new
+        //                            {
+        //                                FarmerId = a.FarmerId,
+        //                                FarmerName = c.LastName + ", " + c.FirstName,
+        //                                FarmAddress = b.FarmAddress,
+        //                                Photo = b.Photo,
+        //                                CreatedBy = b.CreatedBy,
+        //                                DateCreated = b.DateCreated
+
+        //                            }).ToList();
+        //        var farmer_list = FarmerHerdList2().Where(a => a.HerdCode == HerdCode).FirstOrDefault();
+        //        var Feedinglist = _context.HFeedingSystems.ToList();
+        //        var cowLevel = _context.ABuffAnimals.Where(buff => buff.FarmerId == farmer_list.FarmerId).ToList().Count();
+
+        //        var item = new ViewBreedRegistryHerd();
+        //        item.HerdCode = farmer_list.HerdCode;
+        //        item.HerdName = farmer_list.HerdName;
+        //        item.DateofApplication = farmer_list.DateofApplication;
+        //        item.FarmerName = farmer_list.FarmerName;
+        //        item.FarmAddress = farmer_list.FarmAddress;
+        //        item.Photo = farmer_list.Photo;
+        //        item.CreatedBy = farmer_list.CreatedBy;
+        //        item.DateCreated = farmer_list.DateCreated;
+        //        item.FarmerId = farmer_list.FarmerId;
+        //        item.CowLevel = farmer_list.CowLevel;
+        //        item.FarmManager = farmer_list.FarmManager;
+        //        var farm = new List<ListFarmer>();
+        //        for (int i = 0; i < farmer_pivot.Count; i++)
+        //        {
+        //            //var BreedList = _context.ABreeds.Where(a=>a.Id == farmer_pivot[i].BreedTypeId).FirstOrDefault();
+
+        //            var b_item = new ListFarmer();
+        //            b_item.Id = farmer_pivot[i].FarmerId;
+        //            b_item.FarmerName = farmer_pivot[i].FarmerName;
+        //            //b_item.BreedType = BreedList.BreedDesc;
+        //            var feed = new List<FeedingType>();
+
+        //            var feedinglist = (from a in _context.HFeedingSystems
+        //                               join b in _context.tbl_FarmerFeedingSystem on a.Id equals b.FeedingSystem_Id into feeding
+        //                               from b in feeding.DefaultIfEmpty()
+        //                               select new
+        //                               {
+        //                                   feedingSystemDesc = a.FeedingSystemDesc,
+        //                                   Farmer_Id = b.Farmer_Id
+
+        //                               }).Where(farmowner => farmowner.Farmer_Id == farmer_pivot[i].FarmerId).ToList();
+        //            for (int x = 0; x < feedinglist.Count; x++)
+        //            {
+        //                var f_item = new FeedingType();
+        //                f_item.FeedingSystemDesc = feedinglist[x].feedingSystemDesc;
+        //                feed.Add(f_item);
+
+        //            }
+        //            var breed = new List<BreedType>();
+
+        //            var breedlist = (from a in _context.ABreeds
+        //                             join b in _context.TblFarmerBreedTypes on a.Id equals b.BreedTypeId into breeds
+        //                             from b in breeds.DefaultIfEmpty()
+        //                             select new
+        //                             {
+        //                                 Breed_Desc = a.BreedDesc,
+        //                                 Farmer_Id = b.FarmerId
+
+        //                             }).Where(farmowner => farmowner.Farmer_Id == farmer_pivot[i].FarmerId).ToList();
+        //            for (int x = 0; x < breedlist.Count; x++)
+        //            {
+        //                var bb_item = new BreedType();
+        //                bb_item.Breed_Desc = breedlist[x].Breed_Desc;
+        //                breed.Add(bb_item);
+
+        //            }
+        //            b_item.FeedingType = feed;
+        //            b_item.BreedType = breed;
+        //            b_item.CowLevel = cowLevel.ToString();
+        //            farm.Add(b_item);
+
+
+        //        }
+        //        item.ListFarmer = farm;
+        //        //var farmerHerds = await buildfarmerherd(searchFilter).ToListAsync();
+        //        //var result = FormList(searchFilter, farmerHerds);
+        //        return Ok(item);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return Problem(ex.GetBaseException().ToString());
+        //    }
+        //}
+
+        public class BuffHerdRegistryView
+        {
+            public int HerdId { get; set; }
+            public string HerdCode { get; set; }
+            public string HerdName { get; set; }
+            public string FarmerId { get; set; }
+            public string FarmerManagerName { get; set; }
+            public string Center { get; set; }
+            public string? Address { get; set; }
+            public List<HerdFarmers> Farmers { get; set; }
+
+        }
+
+        public class HerdFarmers
+        {
+            public int FarmerId { get; set; }
+            public string FarmerName { get; set; }
+            public List<string> BreedType { get; set; }
+            public List<string> FeedingSystem { get; set; }
+            public string FarmerClassification { get; set; }
+            public int CowLevel { get; set; }
+        }
+
         [HttpPost]
-        public async Task<IActionResult> View(string HerdCode)
+        public async Task<IActionResult> view(string HerdCode)
         {
             try
             {
-                var farmer_pivot = (from a in _context.TblHerdFarmers
-                                    join b in _context.HBuffHerds on a.HerdId equals b.Id into Herd
-                                    from b in Herd.DefaultIfEmpty()
-                                    join c in _context.Tbl_Farmers on a.FarmerId equals c.Id into farmers
-                                    from c in farmers.DefaultIfEmpty()
-                                    select new
-                                    {
-                                        FarmerId = a.FarmerId,
-                                        FarmerName = c.LastName + ", " + c.FirstName,
-                                        FarmAddress = b.FarmAddress,
-                                        Photo = b.Photo,
-                                        CreatedBy = b.CreatedBy,
-                                        DateCreated = b.DateCreated
+                var buffHerd = (from herd in _context.HBuffHerds
+                                join farmer in _context.Tbl_Farmers on herd.FarmerId equals farmer.Id
+                                join herdfarmer in _context.TblHerdFarmers on farmer.Id equals herdfarmer.FarmerId into farmerGroup
+                                from herdfarmer in farmerGroup.DefaultIfEmpty()
+                                where herd.DeleteFlag == false && herd.HerdCode.Equals(HerdCode)
+                                select new BuffHerdRegistryView
+                                {
+                                    HerdId = herd.Id,
+                                    HerdCode = herd.HerdCode,
+                                    HerdName = herd.HerdName,
+                                    Center = herd.Center.ToString(),
+                                    FarmerId = herd.FarmerId.ToString(),
+                                    FarmerManagerName = farmer.LastName + ", " + farmer.FirstName,
+                                    Address = herd.FarmAddress,
+                                }).Distinct().FirstOrDefault();
 
-                                    }).ToList();
-                var farmer_list = FarmerHerdList2().Where(a => a.HerdCode == HerdCode).FirstOrDefault();
-                var Feedinglist = _context.HFeedingSystems.ToList();
-                var cowLevel = _context.ABuffAnimals.Where(buff => buff.FarmerId == farmer_list.FarmerId).ToList().Count();
-
-                var item = new ViewBreedRegistryHerd();
-                item.HerdCode = farmer_list.HerdCode;
-                item.HerdName = farmer_list.HerdName;
-                item.DateofApplication = farmer_list.DateofApplication;
-                item.FarmerName = farmer_list.FarmerName;
-                item.FarmAddress = farmer_list.FarmAddress;
-                item.Photo = farmer_list.Photo;
-                item.CreatedBy = farmer_list.CreatedBy;
-                item.DateCreated = farmer_list.DateCreated;
-                item.FarmerId = farmer_list.FarmerId;
-                item.CowLevel = farmer_list.CowLevel;
-                item.FarmManager = farmer_list.FarmManager;
-                var farm = new List<ListFarmer>();
-                for (int i = 0; i < farmer_pivot.Count; i++)
+                if (buffHerd == null)
                 {
-                    //var BreedList = _context.ABreeds.Where(a=>a.Id == farmer_pivot[i].BreedTypeId).FirstOrDefault();
-
-                    var b_item = new ListFarmer();
-                    b_item.Id = farmer_pivot[i].FarmerId;
-                    b_item.FarmerName = farmer_pivot[i].FarmerName;
-                    //b_item.BreedType = BreedList.BreedDesc;
-                    var feed = new List<FeedingType>();
-
-                    var feedinglist = (from a in _context.HFeedingSystems
-                                       join b in _context.tbl_FarmerFeedingSystem on a.Id equals b.FeedingSystem_Id into feeding
-                                       from b in feeding.DefaultIfEmpty()
-                                       select new
-                                       {
-                                           feedingSystemDesc = a.FeedingSystemDesc,
-                                           Farmer_Id = b.Farmer_Id
-
-                                       }).Where(farmowner => farmowner.Farmer_Id == farmer_pivot[i].FarmerId).ToList();
-                    for (int x = 0; x < feedinglist.Count; x++)
-                    {
-                        var f_item = new FeedingType();
-                        f_item.FeedingSystemDesc = feedinglist[x].feedingSystemDesc;
-                        feed.Add(f_item);
-
-                    }
-                    var breed = new List<BreedType>();
-
-                    var breedlist = (from a in _context.ABreeds
-                                     join b in _context.TblFarmerBreedTypes on a.Id equals b.BreedTypeId into breeds
-                                     from b in breeds.DefaultIfEmpty()
-                                     select new
-                                     {
-                                         Breed_Desc = a.BreedDesc,
-                                         Farmer_Id = b.FarmerId
-
-                                     }).Where(farmowner => farmowner.Farmer_Id == farmer_pivot[i].FarmerId).ToList();
-                    for (int x = 0; x < breedlist.Count; x++)
-                    {
-                        var bb_item = new BreedType();
-                        bb_item.Breed_Desc = breedlist[x].Breed_Desc;
-                        breed.Add(bb_item);
-
-                    }
-                    b_item.FeedingType = feed;
-                    b_item.BreedType = breed;
-                    b_item.CowLevel = cowLevel.ToString();
-                    farm.Add(b_item);
-
-
+                    return NotFound("Herd not found.");
                 }
-                item.ListFarmer = farm;
-                //var farmerHerds = await buildfarmerherd(searchFilter).ToListAsync();
-                //var result = FormList(searchFilter, farmerHerds);
+
+                var herdFarmersIds = _context.TblHerdFarmers
+                    .Where(hf => hf.HerdId == buffHerd.HerdId)
+                    .Select(hf => hf.FarmerId)
+                    .ToList();
+
+                var herdFarmersList = new List<HerdFarmers>();
+
+                foreach (var farmerId in herdFarmersIds)
+                {
+                    var farmer = _context.Tbl_Farmers.FirstOrDefault(f => f.Id == farmerId);
+                    if (farmer != null)
+                    {
+                        var breedTypes = _context.TblFarmerBreedTypes
+                            .Where(b => b.FarmerId == farmerId)
+                            .Join(_context.ABreeds,
+                                  b => b.BreedTypeId,
+                                  bt => bt.Id,
+                                  (b, bt) => bt.BreedDesc)
+                            .ToList();
+
+                        var feedingSystems = _context.tbl_FarmerFeedingSystem
+                            .Where(fs => fs.Farmer_Id == farmerId)
+                            .Join(_context.HFeedingSystems,
+                                  fs => fs.FeedingSystem_Id,
+                                  f => f.Id,
+                                  (fs, f) => f.FeedingSystemDesc)
+                            .ToList();
+
+                        herdFarmersList.Add(new HerdFarmers
+                        {
+                            FarmerId = farmer.Id,
+                            FarmerName = farmer.FirstName + " " + farmer.LastName,
+                            BreedType = breedTypes,
+                            FeedingSystem = feedingSystems,
+                            FarmerClassification = farmer.FarmerClassification_Id.ToString(),
+                            CowLevel = _context.ABuffAnimals.Count(a => a.FarmerId == farmer.Id),
+                        });
+                    }
+                }
+
+                var item = new BuffHerdRegistryView
+                {
+                    HerdId = buffHerd.HerdId,
+                    HerdCode = buffHerd.HerdCode,
+                    HerdName = buffHerd.HerdName,
+                    Center = buffHerd.Center,
+                    FarmerId = buffHerd.FarmerId,
+                    FarmerManagerName = buffHerd.FarmerManagerName,
+                    Address = buffHerd.Address,
+                    Farmers = herdFarmersList 
+                };
+
                 return Ok(item);
             }
             catch (Exception ex)
@@ -585,6 +696,8 @@ namespace API_PCC.Controllers
                 return Problem(ex.GetBaseException().ToString());
             }
         }
+
+
         private IQueryable<BreedRegistryHerd2> buildfarmerherd(FarmerHerdSearch searchFilter)
         {
             // Get the base query as IQueryable
