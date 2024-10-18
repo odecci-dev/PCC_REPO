@@ -4,6 +4,7 @@ using API_PCC.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace API_PCC.Migrations
 {
     [DbContext(typeof(PCC_DEVContext))]
-    partial class PCC_DEVContextModelSnapshot : ModelSnapshot
+    [Migration("20241015062320_AddRestoreColumnFarmerTable1")]
+    partial class AddRestoreColumnFarmerTable1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -599,10 +601,10 @@ namespace API_PCC.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("Restored_At")
+                    b.Property<DateTime>("Restored_At")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("Restored_By")
+                    b.Property<int>("Restored_By")
                         .HasColumnType("int");
 
                     b.Property<string>("TelephoneNumber")
