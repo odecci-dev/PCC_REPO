@@ -136,8 +136,8 @@ namespace API_PCC.Utils
 
             if (searchFilterModel.breedType != null && searchFilterModel.breedType.Any())
             {
-                joins += @$" LEFT JOIN tbl_FarmerBreedType 
-            ON Tbl_Farmers.Id = tbl_FarmerBreedType.Farmer_Id";
+                joins += @" LEFT JOIN tbl_FarmerBreedType 
+                    ON Tbl_Farmers.Id = tbl_FarmerBreedType.Farmer_Id";
 
                 var breedTypeParams = string.Join(", ", searchFilterModel.breedType.Select((_, i) => $"@BreedType{i}"));
                 whereClause += $" AND tbl_FarmerBreedType.BreedType_Id IN ({breedTypeParams})";
@@ -145,8 +145,8 @@ namespace API_PCC.Utils
 
             if (searchFilterModel.feedingSystem != null && searchFilterModel.feedingSystem.Any())
             {
-                joins += @$" LEFT JOIN tbl_FarmerFeedingSystem 
-            ON Tbl_Farmers.Id = tbl_FarmerFeedingSystem.Farmer_Id";
+                joins += @" LEFT JOIN tbl_FarmerFeedingSystem 
+                    ON Tbl_Farmers.Id = tbl_FarmerFeedingSystem.Farmer_Id";
 
                 var feedingSystemParams = string.Join(", ", searchFilterModel.feedingSystem.Select((_, i) => $"@FeedingSystem{i}"));
                 whereClause += $" AND tbl_FarmerFeedingSystem.FeedingSystem_Id IN ({feedingSystemParams})";
@@ -154,12 +154,29 @@ namespace API_PCC.Utils
 
             if (!string.IsNullOrEmpty(searchFilterModel.searchValue))
             {
-                whereClause += " AND (FirstName LIKE '%' + @SearchParam + '%' OR LastName LIKE '%' + @SearchParam + '%')";
+                whereClause += " AND (Tbl_Farmers.FirstName LIKE '%' + @SearchParam + '%' OR Tbl_Farmers.LastName LIKE '%' + @SearchParam + '%')";
             }
 
-            string finalQuery = farmerSelect + joins + " " + whereClause;
+            if ((searchFilterModel.center.HasValue && searchFilterModel.center != 0) || !string.IsNullOrEmpty(searchFilterModel.herdId))
+            {
+                joins += @" LEFT JOIN tbl_UsersModel
+                    ON Tbl_Farmers.User_Id = tbl_UsersModel.Id";
+
+                if (searchFilterModel.center.HasValue && searchFilterModel.center != 0)
+                {
+                    whereClause += " AND tbl_UsersModel.CenterId = @CenterId";
+                }
+
+                if (!string.IsNullOrEmpty(searchFilterModel.herdId))
+                {
+                    whereClause += " AND tbl_UsersModel.HerdId LIKE '%' + @HerdId + '%'";
+                }
+            }
+
+            string finalQuery = $"{farmerSelect} {joins} {whereClause}";
             return finalQuery;
         }
+
 
 
 
