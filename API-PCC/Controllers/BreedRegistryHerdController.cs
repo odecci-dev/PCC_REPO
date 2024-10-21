@@ -805,7 +805,8 @@ namespace API_PCC.Controllers
         [HttpPost]
         public async Task<ActionResult<HBuffHerd>> Save(BuffHerdRegistrationModel registrationModel)
         {
-
+            int farmerGeneratedId = 0;
+            var farmerDetails = new TblUsersModel();
             try
             {
                 DataTable buffHerdDuplicateCheck = db.SelectDb_WithParamAndSorting(QueryBuilder.buildHerdDuplicateCheckSaveQuery(), null, populateSqlParameters(registrationModel.HerdName, registrationModel.HerdCode));
@@ -815,6 +816,41 @@ namespace API_PCC.Controllers
                     status = "Herd already exists";
                     return Conflict(status);
                 }
+
+                string isfarmer = $@"SELECT * FROM tbl_Farmers WHERE User_Id = '{registrationModel.FarmManager}'";
+                DataTable tbl_isfarmer = db.SelectDb(isfarmer).Tables[0];
+
+                if (tbl_isfarmer.Rows.Count != 0)
+                {
+                    //reuse userId if already exists
+                    farmerGeneratedId = int.Parse(registrationModel.FarmManager);
+                    farmerDetails = _context.TblUsersModels.FirstOrDefault(f => f.Id == farmerGeneratedId);
+                }
+                else
+                {
+                    var farmer = new TblFarmers
+                    {
+                        User_Id = int.Parse(registrationModel.FarmManager),
+                        FirstName = farmerDetails.Fname ?? "",
+                        LastName = farmerDetails.Lname ?? "",
+                        Group_Id = registrationModel.GroupId,
+                        Is_Manager = true,
+                        FarmerClassification_Id = 0,
+                        FarmerAffliation_Id = 0,
+                        Address = farmerDetails.Address ?? registrationModel.FarmAddress,
+                        Created_By = int.Parse(registrationModel.CreatedBy),
+                        Created_At = DateTime.Now,
+                        Is_Deleted = false
+                    };
+
+                    _context.Tbl_Farmers.Add(farmer);
+                    await _context.SaveChangesAsync();
+
+                    farmerGeneratedId = farmer.Id;
+                }
+
+                registrationModel.FarmManager = farmerGeneratedId.ToString();
+
 
                 var BuffHerdModel = buildBuffHerd(registrationModel);
                 DataTable farmOwnerRecordsCheck = db.SelectDb_WithParamAndSorting(QueryBuilder.buildFarmOwnerSearchQueryByFirstNameAndLastName(), null, populateSqlParametersFarmer(registrationModel.Owner));
@@ -844,6 +880,7 @@ namespace API_PCC.Controllers
                 return Problem(ex.GetBaseException().ToString());
             }
         }
+
         [HttpPut("{id}")]
         public async Task<IActionResult> update(int id, BuffHerdUpdateModel registrationModel)
         {
