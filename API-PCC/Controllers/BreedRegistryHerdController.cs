@@ -232,7 +232,8 @@ namespace API_PCC.Controllers
         private IQueryable<BreedRegistryHerd2> FarmerHerdList()
         {
             return (from herd in _context.HBuffHerds
-                        join farmer in _context.Tbl_Farmers on herd.FarmerId equals farmer.Id
+                        //join farmer in _context.Tbl_Farmers on herd.FarmerId equals farmer.Id
+                        join farmer in _context.TblUsersModels on herd.FarmerId equals farmer.Id
                         join herdfarmer in _context.TblHerdFarmers on farmer.Id equals herdfarmer.FarmerId into farmerGroup
                         from herdfarmer in farmerGroup.DefaultIfEmpty()
                         where herd.DeleteFlag == false
@@ -247,7 +248,7 @@ namespace API_PCC.Controllers
                         DateofApplication = herd.DateCreated,
                         FarmerCount = _context.TblHerdFarmers.Count(farmer => farmer.HerdId == herd.Id).ToString(),
                         FarmManager = farmer != null
-                             ? farmer.LastName + ", " + farmer.FirstName
+                             ? farmer.Lname + ", " + farmer.Fname
                              : "Unknown Manager",
                     }).Distinct().AsQueryable();
         }
@@ -824,10 +825,11 @@ namespace API_PCC.Controllers
                 {
                     //reuse userId if already exists
                     farmerGeneratedId = int.Parse(registrationModel.FarmManager);
-                    farmerDetails = _context.TblUsersModels.FirstOrDefault(f => f.Id == farmerGeneratedId);
                 }
                 else
                 {
+                    farmerDetails = _context.TblUsersModels.FirstOrDefault(f => f.Id == int.Parse(registrationModel.FarmManager));
+
                     var farmer = new TblFarmers
                     {
                         User_Id = int.Parse(registrationModel.FarmManager),
