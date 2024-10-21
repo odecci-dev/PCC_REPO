@@ -18,6 +18,8 @@ namespace API_PCC.EntityModels
 
         public int UserId { get; set; }
         public int? GroupId { get; set; }
+        public string? HerdId { get; set; }
+        public int? Center { get; set; }
         public bool IsManager { get; set; }
         public int FarmerClassificationId { get; set; }
         public int FarmerAffliationId { get; set; }
