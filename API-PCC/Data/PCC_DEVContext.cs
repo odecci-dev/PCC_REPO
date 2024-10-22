@@ -80,7 +80,7 @@ public partial class PCC_DEVContext : DbContext
    
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<TblFarmerBreedType>().HasNoKey(); // Ensure it's a keyless entity
+        //modelBuilder.Entity<TblFarmerBreedType>().HasNoKey(); // Ensure it's a keyless entity
         modelBuilder.Entity<ABirthType>(entity =>
         {
             entity.ToTable("A_Birth_Type");
@@ -810,8 +810,10 @@ public partial class PCC_DEVContext : DbContext
 
         modelBuilder.Entity<TblFarmerBreedType>(entity =>
         {
+            entity.HasKey(e => e.Id).HasName("PK_tbl_FarmerBreedType");
+
             entity
-                .HasNoKey()
+                //.HasNoKey()
                 .ToTable("tbl_FarmerBreedType");
 
             entity.Property(e => e.BreedTypeId).HasColumnName("BreedType_Id");
