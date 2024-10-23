@@ -1540,6 +1540,18 @@ namespace API_PCC.Controllers
             {
                 buffAnimal.BloodCode = updateModel.BloodCode;
             }
+            if (updateModel.breedRegistryNumber != null && updateModel.breedRegistryNumber != "")
+            {
+                buffAnimal.breedRegistryNumber = updateModel.breedRegistryNumber;
+            }
+            if (updateModel.FarmerId != null && updateModel.FarmerId != 0)
+            {
+                buffAnimal.FarmerId = updateModel.FarmerId;
+            }
+            if (updateModel.GroudId != null && updateModel.GroudId != 0)
+            {
+                buffAnimal.GroupId = updateModel.GroudId;
+            }
             return buffAnimal;
         }
 
@@ -1569,6 +1581,8 @@ namespace API_PCC.Controllers
                 Photo = registrationModel.Photo,
                 HerdCode = registrationModel.HerdCode,
                 RfidNumber = registrationModel.RfidNumber,
+                FarmerId = registrationModel.FarmerId,
+                GroupId = registrationModel.GroudId,
                 DateOfBirth = registrationModel.DateOfBirth,
                 Sex = registrationModel.Sex,
                 BreedCode = registrationModel.BreedCode,
