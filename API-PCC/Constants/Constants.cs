@@ -16,6 +16,20 @@ FROM            H_Buff_Herd LEFT JOIN
         public static readonly String BUFFALO_TYPE_SELECT = $@"SELECT * FROM H_BUFFALO_TYPE ";
         public static readonly String FARMER_AFFILIATION_SELECT = $@"SELECT * FROM H_FARMER_AFFILIATION ";
         public static readonly String FARMERS_SELECT = $@"SELECT DISTINCT Tbl_Farmers.* FROM TBL_FARMERS ";
+
+
+        public static readonly String HERDFARMERS_SELECT = $@"SELECT
+	                                                            hf.Herd_Id,
+	                                                            bh.Center,
+	                                                            u.Fname,
+	                                                            u.Lname,
+	                                                            u.Address AS FarmerAddress,
+	                                                            u.Email AS FarmerEmail,
+	                                                            u.Cno,
+	                                                            f.*
+                                                            FROM Tbl_Farmers f ";
+        
+        
         public static readonly String FEEDING_SYSTEM_SELECT = $@"SELECT * FROM H_FEEDING_SYSTEM ";
         public static readonly String HERD_CLASSIFICATION_SELECT = $@"SELECT * FROM H_HERD_ClASSIFICATION ";
 
