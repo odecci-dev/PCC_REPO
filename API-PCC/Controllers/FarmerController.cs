@@ -58,7 +58,8 @@ namespace API_PCC.Controllers
             public string? MobileNumber { get; set; }
             public List<int> FarmerBreedTypes { get; set; }
             public List<int> FarmerFeedingSystems { get; set; }
-            public int HerdId { get; set; }
+            public int? HerdId { get; set; }
+            public int UserId { get; set; }
             public int FarmerAffliation_Id { get; set; }
             public int FarmerClassification_Id { get; set; }
             public string? Group_Id { get; set; }
@@ -339,6 +340,30 @@ namespace API_PCC.Controllers
                 return Conflict(status);
             }
 
+            //check if user id is used in farmers table
+            var checkUserId = _context.TblUsersModels.FirstOrDefault(u => u.Id == farmerUpdateInfo.UserId);
+
+            if (checkUserId != null)
+            {
+                return Conflict("Invalid User Id.");
+            }
+
+            //check if affiliation code is valid
+            var checkAffCode = _context.HFarmerAffiliations.FirstOrDefault(af => af.FCode.Equals(farmerUpdateInfo.FarmerAffliation_Id.ToString()));
+
+            if (checkAffCode == null)
+            {
+                return Conflict("Invalid Affiliation Code.");
+            }
+
+            //check if classification code is valid
+            var checkClassCode = _context.HHerdClassifications.FirstOrDefault(hc => hc.HerdClassCode.Equals(farmerUpdateInfo.FarmerClassification_Id.ToString()));
+
+            if (checkClassCode == null)
+            {
+                return Conflict("Invalid Classificatiton Code.");
+            }
+
             var farmer = _context.Tbl_Farmers
                     .Single(x => x.Id == id);
 
@@ -588,6 +613,10 @@ namespace API_PCC.Controllers
 
         private TblFarmers populateFarmerDetails(TblFarmers farmerModel, FarmerUpdateInfoModel farmerInfo)
         {
+            if (!string.IsNullOrEmpty(farmerInfo.UserId.ToString()))
+            {
+                farmerModel.User_Id = farmerInfo.UserId;
+            }
             if (!string.IsNullOrEmpty(farmerInfo.FirstName))
             {
                 farmerModel.FirstName = farmerInfo.FirstName;
@@ -719,7 +748,7 @@ namespace API_PCC.Controllers
             return sqlParameters.ToArray();
         }
 
-        private SqlParameter[] populateSqlParameters(int id, FarmerUpdateInfoModel farmerSaveInfo)
+        private SqlParameter[] populateSqlParameters(int id, FarmerUpdateInfoModel farmerUpdateInfo)
         {
 
             var sqlParameters = new List<SqlParameter>();
@@ -731,11 +760,18 @@ namespace API_PCC.Controllers
                 SqlDbType = System.Data.SqlDbType.Int,
             });
 
+            sqlParameters.Add(new SqlParameter
+            {
+                ParameterName = "UserId",
+                Value = farmerUpdateInfo.UserId,
+                SqlDbType = System.Data.SqlDbType.Int,
+            });
+
 
             sqlParameters.Add(new SqlParameter
             {
                 ParameterName = "FirstName",
-                Value = farmerSaveInfo.FirstName ?? Convert.DBNull,
+                Value = farmerUpdateInfo.FirstName ?? Convert.DBNull,
                 SqlDbType = System.Data.SqlDbType.VarChar,
             });
 
@@ -743,14 +779,14 @@ namespace API_PCC.Controllers
             sqlParameters.Add(new SqlParameter
             {
                 ParameterName = "LastName",
-                Value = farmerSaveInfo.LastName ?? Convert.DBNull,
+                Value = farmerUpdateInfo.LastName ?? Convert.DBNull,
                 SqlDbType = System.Data.SqlDbType.VarChar,
             });
 
             sqlParameters.Add(new SqlParameter
             {
                 ParameterName = "Address",
-                Value = farmerSaveInfo.Address ?? Convert.DBNull,
+                Value = farmerUpdateInfo.Address ?? Convert.DBNull,
                 SqlDbType = System.Data.SqlDbType.VarChar,
             });
 

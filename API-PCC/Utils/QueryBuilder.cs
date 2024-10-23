@@ -123,7 +123,7 @@ namespace API_PCC.Utils
 
         public static String buildFarmerSearchByFirstNameLastNameAddress()
         {
-            String farmerSelect = Constants.DBQuery.FARMERS_SELECT + "WHERE Tbl_Farmers.Is_Deleted = 0 AND Tbl_Farmers.Id = @Id AND FirstName = '@FirstName' AND LastName = '@LastName' AND Address = '@Address'";
+            String farmerSelect = Constants.DBQuery.FARMERS_SELECT + "WHERE Tbl_Farmers.Is_Deleted = 0 AND (Tbl_Farmers.Id = @Id AND FirstName = '@FirstName' AND LastName = '@LastName' AND Address = '@Address') OR User_Id = @UserId";
 
             return farmerSelect;
         }
