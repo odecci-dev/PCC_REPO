@@ -56,8 +56,8 @@ namespace API_PCC.Controllers
             public string? Address { get; set; }
             public string? TelephoneNumber { get; set; }
             public string? MobileNumber { get; set; }
-            public List<int> FarmerBreedTypes { get; set; }
-            public List<int> FarmerFeedingSystems { get; set; }
+            public List<FeedingTypeId> FeedingSystemId { get; set; }
+            public List<BreedTypeId> BreedTypeId { get; set; }
             public int? HerdId { get; set; }
             public int UserId { get; set; }
             public int FarmerAffliation_Id { get; set; }
@@ -348,6 +348,14 @@ namespace API_PCC.Controllers
                 return Conflict("Invalid User Id.");
             }
 
+            //check if herd id is valid
+            var checkHerdId = _context.HBuffHerds.FirstOrDefault(h => h.Id == farmerUpdateInfo.HerdId);
+
+            if (checkHerdId == null)
+            {
+                return Conflict("Invalid Herd Id.");
+            }
+
             //check if affiliation code is valid
             var checkAffCode = _context.HFarmerAffiliations.FirstOrDefault(af => af.FCode.Equals(farmerUpdateInfo.FarmerAffliation_Id.ToString()));
 
@@ -372,15 +380,17 @@ namespace API_PCC.Controllers
 
                 farmer = populateFarmerDetails(farmer, farmerUpdateInfo);
 
-                // Step 1: Remove all existing breed types for the farmer
                 var oldFarmerBreedTypes = _context.TblFarmerBreedTypes
                                                   .Where(fbt => fbt.FarmerId == id)
                                                   .ToList();
                 _context.TblFarmerBreedTypes.RemoveRange(oldFarmerBreedTypes);
 
-                // Step 2: Add new breed types
-                foreach (var breedTypeId in farmerUpdateInfo.FarmerBreedTypes)
+
+                foreach (var breedType in farmerUpdateInfo.BreedTypeId)
                 {
+                    var breedTypeId = breedType.FarmerBreedId; 
+
+
                     var breedTypes = _context.ABreeds.Select(b => b.Id).ToList();
 
                     if (breedTypes.Contains(breedTypeId))
@@ -398,15 +408,17 @@ namespace API_PCC.Controllers
                     }
                 }
 
-                // Step 3: Remove all existing feeding systems for the farmer
+
                 var oldFarmerFeedingSystems = _context.tbl_FarmerFeedingSystem
                                                       .Where(ffs => ffs.Farmer_Id == id)
                                                       .ToList();
                 _context.tbl_FarmerFeedingSystem.RemoveRange(oldFarmerFeedingSystems);
 
-                // Step 4: Add new feeding systems
-                foreach (var feedingSystemId in farmerUpdateInfo.FarmerFeedingSystems)
+
+                foreach (var feedingSystem in farmerUpdateInfo.FeedingSystemId)
                 {
+                    var feedingSystemId = feedingSystem.FarmerFeedId; 
+
                     var feedingSystems = _context.HFeedingSystems.Select(fs => fs.Id).ToList();
 
                     if (feedingSystems.Contains(feedingSystemId))
@@ -424,7 +436,6 @@ namespace API_PCC.Controllers
                     }
                 }
 
-                // Save changes to the context
                 await _context.SaveChangesAsync();
 
 
