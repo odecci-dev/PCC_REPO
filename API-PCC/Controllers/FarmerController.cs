@@ -66,7 +66,6 @@ namespace API_PCC.Controllers
             public bool Is_Manager { get; set; }
             public string? Email { get; set; }
             public int Updated_By { get; set; }
-            public DateTime Updated_At { get; set; }
         }
 
         public class FarmerView
@@ -661,10 +660,9 @@ namespace API_PCC.Controllers
             {
                 farmerModel.Updated_By = farmerInfo.Updated_By;
             }
-            if (!string.IsNullOrEmpty(farmerInfo.Updated_At.ToString()))
-            {
-                farmerModel.Updated_At = farmerInfo.Updated_At;
-            }
+            
+            
+            farmerModel.Updated_At = DateTime.Now;
             return farmerModel;
         }
 
