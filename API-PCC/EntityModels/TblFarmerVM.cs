@@ -15,10 +15,10 @@ namespace API_PCC.EntityModels
         public string TelephoneNumber { get; set; }
 
         public string MobileNumber { get; set; }
-
+        public string Email { get; set; }
         public int UserId { get; set; }
         public int? GroupId { get; set; }
-        public string? HerdId { get; set; }
+        public int? HerdId { get; set; }
         public int? Center { get; set; }
         public bool IsManager { get; set; }
         public int FarmerClassificationId { get; set; }
@@ -30,7 +30,6 @@ namespace API_PCC.EntityModels
         public int? UpdatedBy { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public int? DeletedBy { get; set; }
-        public string Email { get; set; }
         public DateTime? DeletedAt { get; set; }
         public bool IsDeleted { get; set; }
 

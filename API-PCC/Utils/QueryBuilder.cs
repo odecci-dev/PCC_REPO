@@ -130,14 +130,27 @@ namespace API_PCC.Utils
 
         public static string buildFarmerSearch(FarmerSearchFilterModel searchFilterModel)
         {
-            string farmerSelect = Constants.DBQuery.FARMERS_SELECT;
-            string joins = "";
-            string whereClause = "WHERE Tbl_Farmers.Is_Deleted = 0 ";
+            string farmerSelect = Constants.DBQuery.HERDFARMERS_SELECT;
+            string joins = @$"LEFT JOIN tbl_HerdFarmer hf ON f.Id = hf.Farmer_Id
+                                LEFT JOIN H_Buff_Herd bh ON hf.Herd_Id = bh.id
+                                LEFT JOIN tbl_UsersModel u ON f.User_Id = u.Id";
+            string whereClause = "WHERE f.Is_Deleted = 0 ";
+
+
+            if (searchFilterModel.center.HasValue && searchFilterModel.center != 0)
+            {
+                whereClause += " AND bh.Center = @CenterId";
+            }
+
+            if (searchFilterModel.herdId.HasValue && searchFilterModel.herdId != 0)
+            {
+                whereClause += " AND hf.Herd_Id = @HerdId";
+            }
 
             if (searchFilterModel.breedType != null && searchFilterModel.breedType.Any())
             {
                 joins += @" LEFT JOIN tbl_FarmerBreedType 
-                    ON Tbl_Farmers.Id = tbl_FarmerBreedType.Farmer_Id";
+                    ON f.Id = tbl_FarmerBreedType.Farmer_Id";
 
                 var breedTypeParams = string.Join(", ", searchFilterModel.breedType.Select((_, i) => $"@BreedType{i}"));
                 whereClause += $" AND tbl_FarmerBreedType.BreedType_Id IN ({breedTypeParams})";
@@ -146,7 +159,7 @@ namespace API_PCC.Utils
             if (searchFilterModel.feedingSystem != null && searchFilterModel.feedingSystem.Any())
             {
                 joins += @" LEFT JOIN tbl_FarmerFeedingSystem 
-                    ON Tbl_Farmers.Id = tbl_FarmerFeedingSystem.Farmer_Id";
+                    ON f.Id = tbl_FarmerFeedingSystem.Farmer_Id";
 
                 var feedingSystemParams = string.Join(", ", searchFilterModel.feedingSystem.Select((_, i) => $"@FeedingSystem{i}"));
                 whereClause += $" AND tbl_FarmerFeedingSystem.FeedingSystem_Id IN ({feedingSystemParams})";
@@ -154,23 +167,7 @@ namespace API_PCC.Utils
 
             if (!string.IsNullOrEmpty(searchFilterModel.searchValue))
             {
-                whereClause += " AND (Tbl_Farmers.FirstName LIKE '%' + @SearchParam + '%' OR Tbl_Farmers.LastName LIKE '%' + @SearchParam + '%')";
-            }
-
-            if ((searchFilterModel.center.HasValue && searchFilterModel.center != 0) || !string.IsNullOrEmpty(searchFilterModel.herdId))
-            {
-                joins += @" LEFT JOIN tbl_UsersModel
-                    ON Tbl_Farmers.User_Id = tbl_UsersModel.Id";
-
-                if (searchFilterModel.center.HasValue && searchFilterModel.center != 0)
-                {
-                    whereClause += " AND tbl_UsersModel.CenterId = @CenterId";
-                }
-
-                if (!string.IsNullOrEmpty(searchFilterModel.herdId))
-                {
-                    whereClause += " AND tbl_UsersModel.HerdId LIKE '%' + @HerdId + '%'";
-                }
+                whereClause += " AND (u.Fname LIKE '%' + @SearchParam + '%' OR u.Lname LIKE '%' + @SearchParam + '%')";
             }
 
             string finalQuery = $"{farmerSelect} {joins} {whereClause}";
