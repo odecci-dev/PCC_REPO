@@ -331,20 +331,28 @@ namespace API_PCC.Controllers
             }
 
 
-            DataTable farmerDuplicateCheck = db.SelectDb_WithParamAndSorting(QueryBuilder.buildFarmerSearchByFirstNameLastNameAddress(), null, populateSqlParameters(id, farmerUpdateInfo));
+            //DataTable farmerDuplicateCheck = db.SelectDb_WithParamAndSorting(QueryBuilder.buildFarmerSearchByFirstNameLastNameAddress(), null, populateSqlParameters(id, farmerUpdateInfo));
 
-            if (farmerDuplicateCheck.Rows.Count > 0)
-            {
-                status = "Entity already exists";
-                return Conflict(status);
-            }
+            //if (farmerDuplicateCheck.Rows.Count > 0)
+            //{
+            //    status = "Entity already exists";
+            //    return Conflict(status);
+            //}
 
             //check if user id is used in farmers table
             var checkUserId = _context.TblUsersModels.FirstOrDefault(u => u.Id == farmerUpdateInfo.UserId);
 
             if (checkUserId == null)
             {
-                return Conflict("Invalid User Id.");
+                return Conflict("User Id does not exist.");
+            }
+
+            //check if farmer user id already used
+            var checkFarmerUserId = _context.Tbl_Farmers.FirstOrDefault(f => f.User_Id == farmerUpdateInfo.UserId && f.Id != id);
+
+            if (checkFarmerUserId != null)
+            {
+                return Conflict("Duplicate user id.");
             }
 
             //check if herd id is valid
@@ -397,7 +405,11 @@ namespace API_PCC.Controllers
                         var newFarmerBreedType = new TblFarmerBreedType
                         {
                             FarmerId = id,
-                            BreedTypeId = breedTypeId
+                            BreedTypeId = breedTypeId,
+                            CreatedAt = DateTime.Now,
+                            CreatedBy = farmerUpdateInfo.Updated_By,
+                            IsDeleted = false
+
                         };
                         _context.TblFarmerBreedTypes.Add(newFarmerBreedType);
                     }
@@ -425,7 +437,10 @@ namespace API_PCC.Controllers
                         var newFarmerFeedingSystem = new FarmFeedingSystem
                         {
                             Farmer_Id = id,
-                            FeedingSystem_Id = feedingSystemId
+                            FeedingSystem_Id = feedingSystemId,
+                            Created_At = DateTime.Now,
+                            Created_By = farmerUpdateInfo.Updated_By,
+                            Is_Deleted = false
                         };
                         _context.tbl_FarmerFeedingSystem.Add(newFarmerFeedingSystem);
                     }
