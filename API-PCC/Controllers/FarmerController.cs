@@ -343,7 +343,7 @@ namespace API_PCC.Controllers
             //check if user id is used in farmers table
             var checkUserId = _context.TblUsersModels.FirstOrDefault(u => u.Id == farmerUpdateInfo.UserId);
 
-            if (checkUserId != null)
+            if (checkUserId == null)
             {
                 return Conflict("Invalid User Id.");
             }
