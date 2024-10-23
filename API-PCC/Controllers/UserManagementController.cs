@@ -668,6 +668,7 @@ namespace API_PCC.Controllers
 
             public bool DeleteFlag { get; set; }
             public bool isFarmer { get; set; }
+            public string HerdId{ get; set; }
 
             public string CreatedBy { get; set; }
 
