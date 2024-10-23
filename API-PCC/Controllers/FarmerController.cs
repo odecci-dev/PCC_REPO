@@ -91,7 +91,7 @@ namespace API_PCC.Controllers
             {
                 DataTable queryResult = db.SelectDb_WithParamAndSorting(QueryBuilder.buildFarmerSearch(searchFilter), null, populateSqlParameters(searchFilter));
                 var result = farmersPagedModel(searchFilter, queryResult);
-                return Ok(result); ;
+                return Ok(result); 
             }
             catch (Exception ex)
             {
@@ -540,18 +540,14 @@ namespace API_PCC.Controllers
                         feedingTypeCodes.Add(row["FeedingSystemDesc"].ToString());
                     }
 
-                    var farmerDetail = _context.TblUsersModels.FirstOrDefault(f => f.Id == (int)dataRow["User_Id"]);
-                    if (farmerDetail != null)
-                    {
-                        farmerModel.FirstName = farmerDetail.Fname;
-                        farmerModel.LastName = farmerDetail.Lname;
-                        farmerModel.Address = farmerDetail.Address;
-                        farmerModel.TelephoneNumber = farmerDetail.Cno;
-                        farmerModel.MobileNumber = farmerDetail.Cno;
-                        farmerModel.Email = farmerDetail.Email;
-                        farmerModel.HerdId = farmerDetail.HerdId;
-                        farmerModel.Center = farmerDetail.CenterId;
-                    }
+                    farmerModel.FirstName = (string)dataRow["Fname"];
+                    farmerModel.LastName = (string)dataRow["Lname"];
+                    farmerModel.Address = (string)dataRow["FarmerAddress"];
+                    farmerModel.TelephoneNumber = (string)dataRow["Cno"];
+                    farmerModel.MobileNumber = (string)dataRow["Cno"];
+                    farmerModel.Email = (string)dataRow["FarmerEmail"];
+                    farmerModel.HerdId = (int)dataRow["Herd_Id"];
+                    farmerModel.Center = (int)dataRow["Center"];
 
                     farmerModel.FarmerBreedTypes = breedTypeCodes;
                     farmerModel.FarmerFeedingSystems = feedingTypeCodes;
@@ -635,13 +631,13 @@ namespace API_PCC.Controllers
                 });
             }
 
-            if (!string.IsNullOrEmpty(searchFilter.herdId))
+            if (searchFilter.herdId.HasValue)
             {
                 sqlParameters.Add(new SqlParameter
                 {
                     ParameterName = "@HerdId",
                     Value = searchFilter.herdId,
-                    SqlDbType = System.Data.SqlDbType.VarChar,
+                    SqlDbType = System.Data.SqlDbType.Int,
                 });
             }
 
