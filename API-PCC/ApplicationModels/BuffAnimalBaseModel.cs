@@ -7,6 +7,8 @@
         public string AnimalName { get; set; }
         public String? Photo { get; set; }
         public string HerdCode { get; set; }
+        public int? GroudId { get; set; }
+        public int? FarmerId { get; set; }
         public string RfidNumber { get; set; }
         public DateTime? DateOfBirth { get; set; }
         public string Sex { get; set; }
