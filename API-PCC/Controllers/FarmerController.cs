@@ -159,7 +159,7 @@ namespace API_PCC.Controllers
             string isAffil = $@"SELECT * FROM H_Farmer_Affiliation WHERE F_Code = '{model.FarmerAffliation_Id}'";
             DataTable tbl_isAffil = db.SelectDb(isAffil).Tables[0];
 
-            string isclassification = $@"SELECT * FROM H_Farmer_Affiliation WHERE Herd_Class_Code = '{model.FarmerClassification_Id}'";
+            string isclassification = $@"SELECT * FROM H_Herd_Classification WHERE Herd_Class_Code = '{model.FarmerClassification_Id}'";
             DataTable tbl_isclassificationl = db.SelectDb(isclassification).Tables[0];
 
             if (tbl_isfarmer.Rows.Count != 0)
