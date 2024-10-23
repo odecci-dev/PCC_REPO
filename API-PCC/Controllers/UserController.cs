@@ -334,19 +334,21 @@ namespace API_PCC.Controllers
             {
                 userlist = userlist.Where(a => a.CenterId.ToString().Equals(searchFilter.centerId)).ToList();
             }
-            if (!string.IsNullOrEmpty(searchFilter.dateRegistered))
+            if (!string.IsNullOrEmpty(searchFilter.dateRegisteredFrom) && !string.IsNullOrEmpty(searchFilter.dateRegisteredTo))
             {
-                if (DateTime.TryParse(searchFilter.dateRegistered, out DateTime registeredDate))
+                if (DateTime.TryParse(searchFilter.dateRegisteredFrom, out DateTime dateFrom) &&
+                    DateTime.TryParse(searchFilter.dateRegisteredTo, out DateTime dateTo))
                 {
-                    // Filter userlist by date, ignoring the time part
-                    userlist = userlist.Where(a => DateTime.Parse(a.DateCreated).Date == registeredDate.Date).ToList();
+                    userlist = userlist.Where(a => DateTime.Parse(a.DateCreated).Date >= dateFrom.Date &&
+                                                   DateTime.Parse(a.DateCreated).Date <= dateTo.Date).ToList();
                 }
                 else
                 {
-                    userlist.Clear();
+                    userlist.Clear(); 
                 }
             }
-                if (searchFilter.searchParam == null || searchFilter.searchParam == string.Empty)
+
+            if (searchFilter.searchParam == null || searchFilter.searchParam == string.Empty)
                 {
                     totalItems = userlist.Count;
                     totalPages = (int)Math.Ceiling((double)totalItems / int.Parse(page_size.ToString()));
