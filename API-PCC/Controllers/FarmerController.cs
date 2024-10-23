@@ -72,10 +72,13 @@ namespace API_PCC.Controllers
         {
             public int FarmerId { get; set; }
             public int UserId { get; set; }
-            public List<int> FarmerBreedTypes { get; set; }
-            public List<int> FarmerFeedingSystems { get; set; }
             public int FarmerAffiliation_Id { get; set; }
             public int FarmerClassification_Id { get; set; }
+            public int Herd_Id { get; set; }
+            public string? Herd_Code { get; set; }
+            public int CowLevel { get; set; }
+            public List<int> FarmerBreedTypes { get; set; }
+            public List<int> FarmerFeedingSystems { get; set; }
 
         }
 
@@ -104,9 +107,25 @@ namespace API_PCC.Controllers
         {
             try
             {
-                var farmer = await _context.Tbl_Farmers
-                    .Where(f => !f.Is_Deleted && f.Id == id)
-                    .FirstOrDefaultAsync();
+                //var farmer = await _context.Tbl_Farmers
+                //    .Where(f => !f.Is_Deleted && f.Id == id)
+                //    .FirstOrDefaultAsync();
+
+                var farmer = await (from f in _context.Tbl_Farmers
+                                                   join hf in _context.TblHerdFarmers
+                                                   on f.Id equals hf.FarmerId into herdGroup
+                                                   from hg in herdGroup.DefaultIfEmpty()
+                                                   join bh in _context.HBuffHerds
+                                                   on hg.HerdId equals bh.Id into buffHerdGroup
+                                                   from bhg in buffHerdGroup.DefaultIfEmpty()
+                                                   where !f.Is_Deleted && f.Id == id
+                                                   select new
+                                                   {
+                                                       HerdId = hg.HerdId,
+                                                       HerdCode = bhg.HerdCode,
+                                                       Farmer = f
+                                                   }).FirstOrDefaultAsync();
+
 
                 if (farmer == null)
                 {
@@ -114,23 +133,26 @@ namespace API_PCC.Controllers
                 }
 
                 var breedTypes = await _context.TblFarmerBreedTypes
-                    .Where(b => b.FarmerId == farmer.Id)
+                    .Where(b => b.FarmerId == farmer.Farmer.Id)
                     .Select(b => b.BreedTypeId)
                     .Distinct()
                     .ToListAsync();
 
                 var feedingSystems = await _context.tbl_FarmerFeedingSystem
-                    .Where(f => f.Farmer_Id == farmer.Id)
+                    .Where(f => f.Farmer_Id == farmer.Farmer.Id)
                     .Select(f => f.FeedingSystem_Id)
                     .Distinct()
                     .ToListAsync();
 
                 var farmerView = new FarmerView
                 {
-                    FarmerId = farmer.Id,
-                    UserId = farmer.User_Id,
-                    FarmerAffiliation_Id = farmer.FarmerAffliation_Id,
-                    FarmerClassification_Id = farmer.FarmerClassification_Id,
+                    FarmerId = farmer.Farmer.Id,
+                    UserId = farmer.Farmer.User_Id,
+                    Herd_Id = (int)farmer.HerdId,
+                    Herd_Code = (string)farmer.HerdCode,
+                    FarmerAffiliation_Id = farmer.Farmer.FarmerAffliation_Id,
+                    FarmerClassification_Id = farmer.Farmer.FarmerClassification_Id,
+                    CowLevel = _context.ABuffAnimals.Count(buff => buff.FarmerId == farmer.Farmer.Id),
                     FarmerBreedTypes = breedTypes,
                     FarmerFeedingSystems = feedingSystems
                 };
