@@ -72,9 +72,9 @@ namespace API_PCC.Controllers
         public class FarmerView
         {
             public int FarmerId { get; set; }
-            public int UserId { get; set; }
-            public int FarmerAffiliation_Id { get; set; }
-            public int FarmerClassification_Id { get; set; }
+            public int? UserId { get; set; }
+            public int? FarmerAffiliation_Id { get; set; }
+            public int? FarmerClassification_Id { get; set; }
             public int Herd_Id { get; set; }
             public string? Herd_Code { get; set; }
             public int CowLevel { get; set; }
@@ -119,7 +119,7 @@ namespace API_PCC.Controllers
                                                    join bh in _context.HBuffHerds
                                                    on hg.HerdId equals bh.Id into buffHerdGroup
                                                    from bhg in buffHerdGroup.DefaultIfEmpty()
-                                                   where !f.Is_Deleted && f.Id == id
+                                                   where f.Is_Deleted == false && f.Id == id
                                                    select new
                                                    {
                                                        HerdId = hg.HerdId,
@@ -372,79 +372,68 @@ namespace API_PCC.Controllers
 
                 farmer = populateFarmerDetails(farmer, farmerUpdateInfo);
 
+                // Step 1: Remove all existing breed types for the farmer
+                var oldFarmerBreedTypes = _context.TblFarmerBreedTypes
+                                                  .Where(fbt => fbt.FarmerId == id)
+                                                  .ToList();
+                _context.TblFarmerBreedTypes.RemoveRange(oldFarmerBreedTypes);
+
+                // Step 2: Add new breed types
                 foreach (var breedTypeId in farmerUpdateInfo.FarmerBreedTypes)
                 {
-                    // Find the record in tbl_FarmerBreedType by FarmerId and BreedTypeId
-                    var farmerBreedType = _context.TblFarmerBreedTypes
-                                                  .FirstOrDefault(fbt => fbt.FarmerId == id && fbt.BreedTypeId == breedTypeId);
                     var breedTypes = _context.ABreeds.Select(b => b.Id).ToList();
 
                     if (breedTypes.Contains(breedTypeId))
                     {
-                        // If found, update the BreedType_Id
-                        if (farmerBreedType != null)
+                        var newFarmerBreedType = new TblFarmerBreedType
                         {
-                            farmerBreedType.BreedTypeId = breedTypeId;
-                        }
-                        else
-                        {
-                            // Add new record if not found
-                            var newFarmerBreedType = new TblFarmerBreedType
-                            {
-                                FarmerId = id,
-                                BreedTypeId = breedTypeId
-                            };
-                            _context.TblFarmerBreedTypes.Add(newFarmerBreedType);
-                        }
+                            FarmerId = id,
+                            BreedTypeId = breedTypeId
+                        };
+                        _context.TblFarmerBreedTypes.Add(newFarmerBreedType);
                     }
                     else
                     {
-                        status += "Breed Type " +  breedTypeId + " does not exist.\n";
-                        //return Conflict("Breed Type " +  breedTypeId + "does not exist.");
+                        status += "Breed Type " + breedTypeId + " does not exist.\n";
                     }
-                    
                 }
 
-                // Step 2: Update Feeding Systems
+                // Step 3: Remove all existing feeding systems for the farmer
+                var oldFarmerFeedingSystems = _context.tbl_FarmerFeedingSystem
+                                                      .Where(ffs => ffs.Farmer_Id == id)
+                                                      .ToList();
+                _context.tbl_FarmerFeedingSystem.RemoveRange(oldFarmerFeedingSystems);
+
+                // Step 4: Add new feeding systems
                 foreach (var feedingSystemId in farmerUpdateInfo.FarmerFeedingSystems)
                 {
-                    // Find the record in tbl_FarmerFeedingSystem by FarmerId and FeedingSystemId
-                    var farmerFeedingSystem = _context.tbl_FarmerFeedingSystem
-                                                      .FirstOrDefault(ffs => ffs.Farmer_Id == id && ffs.FeedingSystem_Id == feedingSystemId);
+                    var feedingSystems = _context.HFeedingSystems.Select(fs => fs.Id).ToList();
 
-                    var feedingSystem = _context.HFeedingSystems.Select(fs => fs.Id).ToList();
-
-                    if (feedingSystem.Contains(feedingSystemId))
+                    if (feedingSystems.Contains(feedingSystemId))
                     {
-                        // If found, update the FeedingSystem_Id
-                        if (farmerFeedingSystem != null)
+                        var newFarmerFeedingSystem = new FarmFeedingSystem
                         {
-                            farmerFeedingSystem.FeedingSystem_Id = feedingSystemId;
-                        }
-                        else
-                        {
-                            // Add new record if not found
-                            var newFarmerFeedingSystem = new FarmFeedingSystem
-                            {
-                                Farmer_Id = id,
-                                FeedingSystem_Id = feedingSystemId
-                            };
-                            _context.tbl_FarmerFeedingSystem.Add(newFarmerFeedingSystem);
-                        }
+                            Farmer_Id = id,
+                            FeedingSystem_Id = feedingSystemId
+                        };
+                        _context.tbl_FarmerFeedingSystem.Add(newFarmerFeedingSystem);
                     }
                     else
                     {
                         status += "Feeding System Id " + feedingSystemId + " does not exist.\n";
-                        //return Conflict("Feeding System Id " + feedingSystem + "does not exist.");
                     }
-
                 }
+
+                // Save changes to the context
+                await _context.SaveChangesAsync();
+
 
                 _context.Entry(farmer).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
                 status += "Update Successful!";
                 dbmet.InsertAuditTrail("Update Farmer Details" + " " + status, DateTime.Now.ToString("yyyy-MM-dd"), "Herd Module", farmer.Updated_By.ToString(), "0");
                 return Ok(status);
+
             }
             catch (Exception ex)
             {
@@ -462,7 +451,7 @@ namespace API_PCC.Controllers
             }
 
             var farmer = await _context.Tbl_Farmers.FindAsync(deletionModel.id);
-            if (farmer == null || farmer.Is_Deleted)
+            if (farmer == null || farmer.Is_Deleted == true)
             {
                 return Conflict("No records matched!");
             }
@@ -493,7 +482,7 @@ namespace API_PCC.Controllers
             }
 
             var farmer = await _context.Tbl_Farmers.FindAsync(restorationModel.id);
-            if (farmer == null || !farmer.Is_Deleted)
+            if (farmer == null || !farmer.Is_Deleted == true)
             {
                 return Conflict("No deleted records matched!");
             }

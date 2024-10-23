@@ -166,7 +166,7 @@ namespace API_PCC.Controllers
                           join j in _context.TblFarmerBreedTypes on a.FarmerId equals j.FarmerId into FarmerBreedType
                           from j in FarmerBreedType.DefaultIfEmpty()
                           let cowLevel = _context.ABuffAnimals.Count(buff => buff.FarmerId == a.FarmerId)
-                          let farmManager = _context.Tbl_Farmers.Any(farm => farm.Is_Manager && farm.Id == a.FarmerId)
+                          let farmManager = _context.Tbl_Farmers.Any(farm => farm.Is_Manager == true && farm.Id == a.FarmerId)
 
                           select new
                           {
