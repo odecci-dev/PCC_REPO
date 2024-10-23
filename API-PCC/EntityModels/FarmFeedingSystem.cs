@@ -9,16 +9,16 @@ public partial class FarmFeedingSystem
 {
     public int Id { get; set; }
 
-    public int Farmer_Id { get; set; }
+    public int? Farmer_Id { get; set; }
 
-    public int FeedingSystem_Id { get; set; }
+    public int? FeedingSystem_Id { get; set; }
 
-    public int Created_By { get; set; }
+    public int? Created_By { get; set; }
 
-    public DateTime Created_At { get; set; }
+    public DateTime? Created_At { get; set; }
 
-    public int Deleted_By { get; set; }
+    public int? Deleted_By { get; set; }
 
-    public bool Is_Deleted { get; set; }
+    public bool? Is_Deleted { get; set; }
 
 }
