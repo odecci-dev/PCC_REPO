@@ -79,7 +79,7 @@ namespace API_PCC.Controllers
             public string? Herd_Code { get; set; }
             public int CowLevel { get; set; }
             public List<int> FarmerBreedTypes { get; set; }
-            public List<int> FarmerFeedingSystems { get; set; }
+            public List<int?> FarmerFeedingSystems { get; set; }
 
         }
 
