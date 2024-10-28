@@ -252,7 +252,7 @@ namespace API_PCC.Controllers
             IQueryable<ABuffAnimal> query = _context.ABuffAnimals;
             IQueryable<HBuffHerd> queryh = _context.HBuffHerds;
             IQueryable<TblCenterModel> queryc = _context.TblCenterModels;
-            IQueryable<TblFarmOwner> queryfo = _context.TblFarmOwners;
+            IQueryable<TblFarmers> queryfo = _context.Tbl_Farmers;
             IQueryable<TblUsersModel> queryu = _context.TblUsersModels;
 
             query = query.Where(animal => !animal.DeleteFlag);
@@ -1253,7 +1253,7 @@ namespace API_PCC.Controllers
             {
 
                 var buffHerds = _context.HBuffHerds;
-                var farmOwners = _context.TblFarmOwners;
+                var farmOwners = _context.Tbl_Farmers;
 
                 var ownerDetails = buffHerds
                                     .Where(herd => herd.HerdCode.Equals(buffAnimal.HerdCode))
