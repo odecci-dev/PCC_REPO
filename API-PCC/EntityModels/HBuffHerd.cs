@@ -24,7 +24,6 @@ public partial class HBuffHerd
 
     public ICollection<HBuffaloType>? buffaloType { get; set; } = new List<HBuffaloType>();
 
-
     public ICollection<HFeedingSystem>? feedingSystem { get; set; } = new List<HFeedingSystem>();
 
     public string FarmManager { get; set; }

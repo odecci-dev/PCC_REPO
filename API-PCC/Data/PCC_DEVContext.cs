@@ -705,14 +705,19 @@ public partial class PCC_DEVContext : DbContext
                 .IsUnicode(false);
         });
 
-        modelBuilder.Entity<TblBloodCalculator>(entity =>
+        modelBuilder.Entity<TblBLoodCalculator>(entity =>
         {
+            entity.HasKey(e => e.Id).HasName("PK_TblBLoodCalculator");
             entity.ToTable("TblBLoodCalculator");
 
-            entity.Property(e => e.Criteria).IsUnicode(false);
-            entity.Property(e => e.DateCreated).HasColumnType("datetime");
-            entity.Property(e => e.Formula).IsUnicode(false);
-            entity.Property(e => e.Name).IsUnicode(false);
+            entity.Property(e => e.Id)
+                .HasColumnName("Id");
+            entity.Property(e => e.Name)
+                .HasColumnName("Name");
+            entity.Property(e => e.Criteria)
+                .HasColumnName("Criteria");
+            entity.Property(e => e.Formula)
+                .HasColumnName("Formula");
         });
 
         modelBuilder.Entity<TblCenterModel>(entity =>

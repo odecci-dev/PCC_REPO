@@ -6,5 +6,6 @@
         public string Name { get; set; }
         public string Criteria { get; set; }
         public string Formula { get; set; }
+        public DateTime? DateCreated{ get; set; }
     }
 }
