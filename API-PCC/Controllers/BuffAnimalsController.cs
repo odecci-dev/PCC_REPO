@@ -1045,7 +1045,7 @@ namespace API_PCC.Controllers
         private ABuffAnimal animalRecordCheck(Animal animal)
         {
             var animalRecord = _context.ABuffAnimals
-                                        .Where(buffAnimal => buffAnimal.RfidNumber.Equals(animal.RegistrationNumber) &&
+                                        .Where(buffAnimal => buffAnimal.breedRegistryNumber.Equals(animal.RegistrationNumber) &&
                                                 buffAnimal.AnimalIdNumber.Equals(animal.IdNumber) &&
                                                 buffAnimal.AnimalName.Equals(animal.Name) &&
                                                 buffAnimal.BreedCode.Equals(animal.BreedCode) &&
