@@ -8,6 +8,7 @@
         public string? status { get; set; }
         public int page { get; set; }
         public int pageSize { get; set; }
+        public int? groupid { get; set; }
         public int? centerid { get; set; }
         public string? userid { get; set; }
         public SortByModel sortBy { get; set; }

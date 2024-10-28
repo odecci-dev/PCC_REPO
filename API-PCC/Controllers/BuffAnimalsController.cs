@@ -290,6 +290,9 @@ namespace API_PCC.Controllers
                                               result.farmOwnerUser.Id.ToString().Contains(searchFilter.userid))
                              .Select(result => result.animal);
 
+            if (searchFilter.groupid.HasValue && searchFilter.groupid != 0)
+                query = query.Where(animal => animal.GroupId.Equals(searchFilter.groupid));
+
             if (!searchFilter.searchValue.IsNullOrEmpty())
                 query = query.Where(animal =>
                                animal.AnimalIdNumber.Contains(searchFilter.searchValue) ||
