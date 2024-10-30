@@ -487,6 +487,7 @@ namespace API_PCC.Controllers
                                            ,[AgreementStatus]
                                            ,[UserType]
                                            ,[isFarmer]
+                                           ,[HerdId]
                                            ,[Delete_Flag])
                                      VALUES
                                            ('" + userTbl.Username + "'" +
@@ -509,6 +510,7 @@ namespace API_PCC.Controllers
                                            "'" + userTbl.AgreementStatus + "'," +
                                            "'" + userTbl.UserType + "'," +
                                            "'" + userTbl.isFarmer + "'," +
+                                           "'" + userTbl.HerdId + "'," +
                                            "'0')";
                     db.DB_WithParam(user_insert);
 
