@@ -248,7 +248,7 @@ namespace API_PCC.Manager
                     sql = $@"SELECT        A_Buff_Animal.id, A_Buff_Animal.Animal_ID_Number, A_Buff_Animal.Animal_Name, A_Buff_Animal.Photo, A_Buff_Animal.Herd_Code, A_Buff_Animal.RFID_Number, A_Buff_Animal.Date_of_Birth, A_Buff_Animal.Sex, 
                              A_Buff_Animal.Birth_Type, A_Buff_Animal.Country_Of_Birth, A_Buff_Animal.Origin_Of_Acquisition, A_Buff_Animal.Date_Of_Acquisition, A_Buff_Animal.Marking, A_Buff_Animal.Type_Of_Ownership, A_Buff_Animal.Delete_Flag, 
                              A_Buff_Animal.Status, A_Buff_Animal.Created_By, A_Buff_Animal.Created_Date, A_Buff_Animal.Updated_By, A_Buff_Animal.Update_Date, A_Buff_Animal.Date_Deleted, A_Buff_Animal.Deleted_By, 
-                             A_Buff_Animal.Date_Restored, A_Buff_Animal.Restored_By, A_Buff_Animal.BreedRegistryNumber, A_Breed.Breed_Code, A_Blood_Comp.Blood_Code, tbl_StatusModel.Status AS StatusName
+                             A_Buff_Animal.Date_Restored, A_Buff_Animal.Restored_By, A_Buff_Animal.BreedRegistryNumber, A_Breed.Breed_Code, A_Blood_Comp.Blood_Code, tbl_StatusModel.Status AS StatusName, A_Buff_Animal.FarmerId, A_Buff_Animal.GroupId
                              FROM            A_Buff_Animal INNER JOIN
                              A_Breed ON A_Buff_Animal.Breed_Code = CAST(A_Breed.Id AS VARCHAR(255))     inner JOIN
                              A_Blood_Comp ON  A_Buff_Animal.Blood_Code = CAST(A_Blood_Comp.Id AS VARCHAR(255)) inner JOIN
@@ -265,6 +265,8 @@ namespace API_PCC.Manager
                         item.Animal_Name = dr["Animal_Name"].ToString();
                         item.Photo = dr["Photo"].ToString();
                         item.Herd_Code = dr["Herd_Code"].ToString();
+                        item.Farmer_Id = dr["FarmerId"].ToString();
+                        item.Group_Id = dr["GroupId"].ToString();
                         item.RFID_Number = dr["RFID_Number"].ToString();
                         item.Date_of_Birth = dr["Date_of_Birth"].ToString();
                         item.Sex = dr["Sex"].ToString();
@@ -289,7 +291,6 @@ namespace API_PCC.Manager
                         item.Delete_Flag = dr["Delete_Flag"].ToString();
                         item.Status = dr["Status"].ToString();
                         item.StatusName = dr["StatusName"].ToString();
-
 
                         result.Add(item);
                     }
