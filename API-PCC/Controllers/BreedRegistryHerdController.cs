@@ -238,16 +238,22 @@ namespace API_PCC.Controllers
                         from herdfarmer in farmerGroup.DefaultIfEmpty()
                         where herd.DeleteFlag == false
 
-
                     select new BreedRegistryHerd2
                     {
                         HerdId = herd.Id,
                         HerdCode = herd.HerdCode,
                         HerdName = herd.HerdName,
+                        FarmAddress = herd.FarmAddress,
+                        Photo = herd.Photo,
+                        CreatedBy = herd.CreatedBy,
+                        DateCreated = herd.DateCreated.ToString(),
                         Center = (int)herd.Center,
                         DateofApplication = herd.DateCreated,
                         FarmerCount = _context.TblHerdFarmers.Count(farmer => farmer.HerdId == herd.Id).ToString(),
                         FarmManager = farmer != null
+                             ? farmer.Lname + ", " + farmer.Fname
+                             : "Unknown Manager",
+                        FarmerName = farmer != null
                              ? farmer.Lname + ", " + farmer.Fname
                              : "Unknown Manager",
                     }).Distinct().AsQueryable();
@@ -723,10 +729,6 @@ namespace API_PCC.Controllers
                 {
                     query = query.Where(herd => herd.DateofApplication >= parsedDate);
                 }
-                else
-                {
-                    // Handle invalid date format if needed
-                }
             }
 
             // Apply sorting if specified
@@ -739,7 +741,6 @@ namespace API_PCC.Controllers
             else
             {
                 // Default sort by FarmerId descending
-                //query = query.OrderByDescending(herd => herd.FarmerId);
                 query = query.OrderByDescending(herd => herd.HerdId);
             }
 
@@ -806,7 +807,7 @@ namespace API_PCC.Controllers
         [HttpPost]
         public async Task<ActionResult<HBuffHerd>> Save(BuffHerdRegistrationModel registrationModel)
         {
-            int farmerGeneratedId = 0;
+            int? farmerGeneratedId = 0;
             var farmerDetails = new TblUsersModel();
             try
             {
@@ -848,7 +849,8 @@ namespace API_PCC.Controllers
                     _context.Tbl_Farmers.Add(farmer);
                     await _context.SaveChangesAsync();
 
-                    farmerGeneratedId = farmer.Id;
+                    farmerGeneratedId = farmer.User_Id;
+                    //farmerGeneratedId = farmer.Id;
                 }
 
                 registrationModel.FarmManager = farmerGeneratedId.ToString();
