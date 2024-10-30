@@ -345,7 +345,7 @@ namespace API_PCC.Manager
                                       ,[TelephoneNumber]
                                       ,[MobileNumber]
                                       ,[Email]
-                                  FROM [dbo].[tbl_FarmOwner] where FirstName like '%" + user_table.Rows[0]["Fname"].ToString() + "%' " +
+                                  FROM [dbo].[tbl_Farmers] where FirstName like '%" + user_table.Rows[0]["Fname"].ToString() + "%' " +
                                   "and LastName like '%" + user_table.Rows[0]["Lname"].ToString() + "%' " +
                                   "and Address like '%" + user_table.Rows[0]["Address"].ToString() + "%'";
                 DataTable farmer_table = db.SelectDb(farmer_sql).Tables[0];
