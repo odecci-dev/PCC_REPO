@@ -40,6 +40,8 @@ namespace API_PCC.Controllers
             public string Animal_Name { get; set; }
             public string Photo { get; set; }
             public string Herd_Code { get; set; }
+            public string Farmer_Id { get; set; }
+            public string Group_Id { get; set; }
             public string RFID_Number { get; set; }
             public string Date_of_Birth { get; set; }
             public string Sex { get; set; }
@@ -1477,7 +1479,9 @@ namespace API_PCC.Controllers
                 BloodCode = int.Parse(table1.Rows[0]["id"].ToString()),
                 Sire = populateAnimalModel(buffAnimal.Id),
                 Dam = populatedamAnimalModel(buffAnimal.Id),
-                breedRegistryNumber = buffAnimal.breedRegistryNumber
+                breedRegistryNumber = buffAnimal.breedRegistryNumber,
+                GroudId = buffAnimal.GroupId,
+                FarmerId = buffAnimal.FarmerId
 
 
             };
@@ -1547,11 +1551,11 @@ namespace API_PCC.Controllers
             {
                 buffAnimal.breedRegistryNumber = updateModel.breedRegistryNumber;
             }
-            if (updateModel.FarmerId != null && updateModel.FarmerId != 0)
+            if (updateModel.FarmerId.HasValue)
             {
                 buffAnimal.FarmerId = updateModel.FarmerId;
             }
-            if (updateModel.GroudId != null && updateModel.GroudId != 0)
+            if (updateModel.GroudId.HasValue)
             {
                 buffAnimal.GroupId = updateModel.GroudId;
             }
@@ -1595,6 +1599,7 @@ namespace API_PCC.Controllers
                 Marking = registrationModel.Marking,
                 TypeOfOwnership = registrationModel.TypeOfOwnership,
                 BloodCode = registrationModel.BloodCode,
+
 
                 breedRegistryNumber = string.IsNullOrEmpty(registrationModel.breedRegistryNumber) ? BreedRegistryNumber : registrationModel.breedRegistryNumber
             };
