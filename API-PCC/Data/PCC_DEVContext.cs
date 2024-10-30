@@ -80,7 +80,54 @@ public partial class PCC_DEVContext : DbContext
    
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        //modelBuilder.Entity<TblFarmerBreedType>().HasNoKey(); // Ensure it's a keyless entity
+        modelBuilder.Entity<HBuffHerd>()
+        .HasMany(e => e.buffaloType)
+        .WithMany(e => e.buffHerd)
+        .UsingEntity<BuffHerdJoinTable>();
+
+            modelBuilder.Entity<HBuffHerd>()
+                .HasMany(e => e.feedingSystem)
+                .WithMany(e => e.buffHerd)
+                .UsingEntity<BuffHerdJoinTable>();
+            modelBuilder.Entity<TblUsersModel>()
+               .HasMany(e => e.userAccessModels)
+               .WithOne(e => e.userModel)
+               .HasForeignKey(e => e.userModelId);
+
+            modelBuilder.Entity<UserAccessModel>()
+                .HasMany(e => e.userAccess)
+                .WithOne(e => e.accessModel)
+                .HasForeignKey(e => e.userAccessModelId);
+
+            modelBuilder.Entity<ABuffAnimal>()
+            .HasOne<A_Family>()
+            .WithOne(e => e.sire)
+            .HasForeignKey<A_Family>(e => e.sireId)
+            .IsRequired();
+
+            modelBuilder.Entity<ABuffAnimal>()
+            .HasOne<A_Family>()
+            .WithOne(e => e.dam)
+              .HasForeignKey<A_Family>(e => e.damId)
+            .IsRequired();
+
+        modelBuilder.Entity<BuffHerdJoinTable>(entity =>
+        {
+            entity.ToTable("tbl_Join_BuffHerd");
+
+            entity.HasKey(e => e.BuffHerdJoinTableId).HasName("PK_tbl_Join_BuffHerd");
+
+            entity.Property(e => e.BuffHerdJoinTableId)
+                  .HasColumnName("Join_BuffHerd_Id");
+            entity.Property(e => e.BuffaloTypeId)
+                  .HasColumnName("Buffalo_Type_Id");
+            entity.Property(e => e.BuffHerdId)
+                  .HasColumnName("Buff_Herd_Id");
+            entity.Property(e => e.FeedingSystemId)
+                 .HasColumnName("Feeding_System_Id");
+        });
+
+        modelBuilder.Entity<TblFarmerBreedType>().HasNoKey(); // Ensure it's a keyless entity
         modelBuilder.Entity<ABirthType>(entity =>
         {
             entity.ToTable("A_Birth_Type");

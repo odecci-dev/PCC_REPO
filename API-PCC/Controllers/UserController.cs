@@ -329,14 +329,25 @@ namespace API_PCC.Controllers
             var userlist = dbmet.getUserList().ToList();
 
             //no center to base the list on
-            if (string.IsNullOrEmpty(searchFilter.centerId))
-            {
-                userlist.Clear();
-            }
+            //if (string.IsNullOrEmpty(searchFilter.centerId))
+            //{
+            //    userlist.Clear();
+            //}
             if (!searchFilter.centerId.Equals("0") && !string.IsNullOrEmpty(searchFilter.centerId))
             {
                 userlist = userlist.Where(a => a.CenterId.ToString().Equals(searchFilter.centerId)).ToList();
             }
+
+            if (!searchFilter.herdId.Equals("0") && !string.IsNullOrEmpty(searchFilter.herdId))
+            {
+                userlist = userlist.Where(a => a.HerdId.ToString().Equals(searchFilter.herdId)).ToList();
+            }
+
+            if (searchFilter.farmerSearching == true)
+            {
+                userlist = userlist.Where(a => a.isFarmer == true).ToList();
+            }
+
             if (!string.IsNullOrEmpty(searchFilter.dateRegisteredFrom) && !string.IsNullOrEmpty(searchFilter.dateRegisteredTo))
             {
                 if (DateTime.TryParse(searchFilter.dateRegisteredFrom, out DateTime dateFrom) &&

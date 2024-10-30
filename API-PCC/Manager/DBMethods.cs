@@ -751,7 +751,7 @@ FROM            PCC_adjusted.dbo.H_Buff_Herd INNER JOIN
             string sqls = $@"SELECT     tbl_UsersModel.Id, tbl_UsersModel.Username, tbl_UsersModel.Password, tbl_UsersModel.Fullname, tbl_UsersModel.Fname, tbl_UsersModel.Lname, tbl_UsersModel.Mname, tbl_UsersModel.Email, 
                          tbl_UsersModel.Gender, tbl_UsersModel.EmployeeID, tbl_UsersModel.JWToken, tbl_UsersModel.FilePath, tbl_UsersModel.Active, tbl_UsersModel.Cno, tbl_UsersModel.Address, tbl_UsersModel.Status, 
                          tbl_UsersModel.Date_Created, tbl_UsersModel.Date_Updated, tbl_UsersModel.Delete_Flag, tbl_UsersModel.Created_By, tbl_UsersModel.Updated_By, tbl_UsersModel.Date_Deleted, tbl_UsersModel.Deleted_By, 
-                         tbl_UsersModel.Date_Restored, tbl_UsersModel.Restored_By, tbl_UsersModel.CenterId, tbl_UsersModel.AgreementStatus, tbl_UsersModel.RememberToken, tbl_UsersModel.UserType, tbl_UserTypeModel.code, 
+                         tbl_UsersModel.Date_Restored, tbl_UsersModel.Restored_By, tbl_UsersModel.CenterId, tbl_UsersModel.AgreementStatus, tbl_UsersModel.RememberToken, tbl_UsersModel.UserType, tbl_UsersModel.HerdId, tbl_UserTypeModel.code, 
                          tbl_UserTypeModel.name, tbl_StatusModel.Status AS StatusName, tbl_CenterModel.CenterName,isFarmer
                     FROM            tbl_UsersModel LEFT JOIN
                          tbl_UserTypeModel ON tbl_UsersModel.UserType = tbl_UserTypeModel.id INNER JOIN
@@ -803,6 +803,7 @@ FROM            PCC_adjusted.dbo.H_Buff_Herd INNER JOIN
                 item.UserTypeName = dr["name"].ToString();
                 item.StatusName = dr["StatusName"].ToString();
                 item.isFarmer = bool.Parse(dr["isFarmer"].ToString());
+                item.HerdId = dr["HerdId"].ToString();
 
                 string sql = $@"SELECT tbl_UserTypeModel.[Id],Name as UserType
                             FROM [dbo].[tbl_UserTypeModel] inner join 
