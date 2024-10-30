@@ -145,6 +145,7 @@ namespace API_PCC.Controllers
             public int? Status { get; set; }
             public string? CreatedBy { get; set; }
 
+            public int? HerdId { get; set; }
             public int? CenterId { get; set; }
 
             public bool? AgreementStatus { get; set; }
@@ -163,17 +164,19 @@ namespace API_PCC.Controllers
             return Ok(userlist);
         }
         [HttpPost]
-        public async Task<ActionResult<IEnumerable<TblUsersModel>>> UpdateProfile(int id, string profileimage, string fName, string lName, string email, string contNum, string address, string username)
+        public async Task<ActionResult<IEnumerable<TblUsersModel>>> UpdateProfile(int id, string profileimage, string fName, string mName, string lName, string email, string contNum, string address, string username, string herdId)
         {
             string tbl_UsersModel_update = $@"UPDATE [dbo].[tbl_UsersModel] SET 
                                              [FilePath] = '" + profileimage + "'," +
                                              "[Fname] = '" + fName + "'," +
+                                             "[Mname] = '" + mName + "'," +
                                              "[Lname] = '" + lName + "'," +
-                                             "[Fullname] = '" + fName + " " + lName + "'," +
+                                             "[Fullname] = '" + fName + " " + mName + " " + lName + "'," +
                                              "[Email] = '" + email + "'," +
                                              "[Cno] = '" + contNum + "'," +
                                              "[Address] = '" + address + "'," +
-                                             "[Username] = '" + username + "'" +
+                                             "[Username] = '" + username + "', " +
+                                             "[HerdId] = '" + herdId + "'" +
                                          " WHERE id = '" + id + "'";
             string result = db.DB_WithParam(tbl_UsersModel_update);
             return Ok(result);
@@ -491,6 +494,8 @@ namespace API_PCC.Controllers
         public async Task<ActionResult<TblUsersModel>> register(RegistrationModel userTbl)
         {
             string filepath = "";
+            bool? _IsFarmer = false;
+            int? _Center = 0;
             var user_list = dbmet.getUserList().AsEnumerable().Where(a => a.Username.Equals(userTbl.Username, StringComparison.Ordinal)).ToList();
             if (user_list.Count == 0)
             {
@@ -560,6 +565,10 @@ namespace API_PCC.Controllers
                     Stats = "Ok";
                     Mess = "User is for Verification, OTP Already Send!";
                     JWT = string.Concat(strtokenresult.TakeLast(15));
+                    _IsFarmer = userTbl.isFarmer;
+                    _Center = userTbl.CenterId;
+                    
+                    
                 }
             }
             else
@@ -572,7 +581,9 @@ namespace API_PCC.Controllers
             {
                 Status = Stats,
                 Message = Mess,
-                JwtToken = JWT
+                JwtToken = JWT,
+                isFarmer = _IsFarmer,
+                Center = _Center
             };
             dbmet.InsertAuditTrail("Register " + Stats + " " + Mess, DateTime.Now.ToString("yyyy-MM-dd"), "User Module", userTbl.Username, "0");
             return Ok(result);
@@ -603,7 +614,8 @@ namespace API_PCC.Controllers
                                ,[CenterId]
                                ,[AgreementStatus]
                                ,[isFarmer]
-                               ,[UserType])
+                               ,[UserType]
+                               ,[HerdId])
                                  VALUES
                                        ('" + registrationModel.Username + "'," +
                                        "'" + Cryptography.Encrypt(registrationModel.Password) + "'," +
@@ -626,7 +638,8 @@ namespace API_PCC.Controllers
                                         "'" + registrationModel.CenterId + "'," +
                                        "'" + registrationModel.AgreementStatus + "'," +
                                        "'" + registrationModel.isFarmer + "'," +
-                                       "'" + registrationModel.UserType + "')";
+                                       "'" + registrationModel.UserType + "'," +
+                                       "'" + registrationModel.HerdId + "' )";
             string test = db.DB_WithParam(user_insert);
 
             return test;
