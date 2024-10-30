@@ -74,11 +74,11 @@ namespace API_PCC.Controllers
             public int? UserId { get; set; }
             public int? FarmerAffiliation_Id { get; set; }
             public int? FarmerClassification_Id { get; set; }
-            public int Herd_Id { get; set; }
+            public int? Herd_Id { get; set; }
             public string? Herd_Code { get; set; }
             public int CowLevel { get; set; }
-            public List<int> FarmerBreedTypes { get; set; }
-            public List<int?> FarmerFeedingSystems { get; set; }
+            public List<int>? FarmerBreedTypes { get; set; }
+            public List<int?>? FarmerFeedingSystems { get; set; }
 
         }
 
@@ -148,7 +148,7 @@ namespace API_PCC.Controllers
                 {
                     FarmerId = farmer.Farmer.Id,
                     UserId = farmer.Farmer.User_Id,
-                    Herd_Id = (int)farmer.HerdId,
+                    Herd_Id = farmer.HerdId == null ? 0 : (int)farmer.HerdId,
                     Herd_Code = (string)farmer.HerdCode,
                     FarmerAffiliation_Id = farmer.Farmer.FarmerAffliation_Id,
                     FarmerClassification_Id = farmer.Farmer.FarmerClassification_Id,
