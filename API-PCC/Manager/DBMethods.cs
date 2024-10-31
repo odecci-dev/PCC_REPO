@@ -995,7 +995,7 @@ FROM            PCC_adjusted.dbo.H_Buff_Herd INNER JOIN
                 item.StatusName = dr["StatusName"].ToString();
                 item.UserAccessId = dr["userAccesasId"].ToString();
                 item.isFarmer = (bool)dr["isFarmer"];
-                item.HerdId = dr["HerdId"].ToString();
+                item.HerdId = dr["HerdId"] == null ? "0" : dr["HerdId"].ToString();
 
 
 
