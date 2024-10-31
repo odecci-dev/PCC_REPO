@@ -622,11 +622,17 @@ namespace API_PCC.Controllers
         {
             try
             {
+                //var buffHerd = (from herd in _context.HBuffHerds
+                //                join farmer in _context.Tbl_Farmers on herd.FarmerId equals farmer.Id
+                //                join herdfarmer in _context.TblHerdFarmers on farmer.Id equals herdfarmer.FarmerId into farmerGroup
+                //                from herdfarmer in farmerGroup.DefaultIfEmpty()
+                //                where herd.DeleteFlag == false && herd.HerdCode.Contains(HerdCode)
+
                 var buffHerd = (from herd in _context.HBuffHerds
-                                join farmer in _context.Tbl_Farmers on herd.FarmerId equals farmer.Id
-                                join herdfarmer in _context.TblHerdFarmers on farmer.Id equals herdfarmer.FarmerId into farmerGroup
-                                from herdfarmer in farmerGroup.DefaultIfEmpty()
-                                where herd.DeleteFlag == false && herd.HerdCode.Equals(HerdCode)
+                                    //join farmer in _context.Tbl_Farmers on herd.FarmerId equals farmer.Id
+                                join farmer in _context.TblUsersModels on herd.FarmerId equals farmer.Id
+                                where herd.DeleteFlag == false && herd.HerdCode.Contains(HerdCode)
+
                                 select new BuffHerdRegistryView
                                 {
                                     HerdId = herd.Id,
@@ -634,7 +640,7 @@ namespace API_PCC.Controllers
                                     HerdName = herd.HerdName,
                                     Center = herd.Center.ToString(),
                                     FarmerId = herd.FarmerId.ToString(),
-                                    FarmerManagerName = farmer.LastName + ", " + farmer.FirstName,
+                                    FarmerManagerName = farmer.Lname + ", " + farmer.Fname,
                                     Address = herd.FarmAddress,
                                 }).Distinct().FirstOrDefault();
 
