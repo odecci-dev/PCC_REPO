@@ -677,13 +677,15 @@ namespace API_PCC.Controllers
                                   (fs, f) => f.FeedingSystemDesc)
                             .ToList();
 
+                        var classificationDesc = _context.HHerdClassifications.Where(c => c.HerdClassCode.Equals(farmer.FarmerClassification_Id.ToString())).FirstOrDefault();
+
                         herdFarmersList.Add(new HerdFarmers
                         {
                             FarmerId = farmer.Id,
                             FarmerName = farmer.FirstName + " " + farmer.LastName,
                             BreedType = breedTypes,
                             FeedingSystem = feedingSystems,
-                            FarmerClassification = farmer.FarmerClassification_Id.ToString(),
+                            FarmerClassification = classificationDesc.HerdClassDesc,
                             CowLevel = _context.ABuffAnimals.Count(a => a.FarmerId == farmer.Id),
                         });
                     }
