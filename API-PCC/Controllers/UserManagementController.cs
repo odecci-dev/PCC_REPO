@@ -600,8 +600,18 @@ namespace API_PCC.Controllers
         //        return Problem(ex.GetBaseException().ToString());
         //    }
         //}
+
+        public class CommonSearchFilterWithCenterIdModel
+        {
+            public string? searchParam { get; set; }
+            public int? centerId { get; set; }
+            public int page { get; set; }
+            public int pageSize { get; set; }
+
+        }
+
         [HttpPost]
-        public async Task<ActionResult<IEnumerable<TblUsersModel>>> UserForApprovalList(CommonSearchFilterModel searchFilter)
+        public async Task<ActionResult<IEnumerable<TblUsersModel>>> UserForApprovalList(CommonSearchFilterWithCenterIdModel searchFilter)
         {
             {
 
@@ -696,28 +706,37 @@ namespace API_PCC.Controllers
             public string UserTypeName { get; set; }
             public ICollection<UserTypeAction_Model>? userAccessModels { get; set; } = new List<UserTypeAction_Model>();
         }
-        private List<PaginationModel> buildUserPagedModel(CommonSearchFilterModel searchFilter)
+
+
+
+        private List<PaginationModel> buildUserPagedModel(CommonSearchFilterWithCenterIdModel searchFilter)
         {
             var items = (dynamic)null;
             int totalItems = 0;
             int totalPages = 0;
             string page_size = searchFilter.pageSize == 0 ? "10" : searchFilter.pageSize.ToString();
-            if (searchFilter.searchParam == null || searchFilter.searchParam == string.Empty)
+
+            var userlist = dbmet.getUserList().ToList();
+
+            if (searchFilter.centerId.HasValue && searchFilter.centerId != 0)
+            {
+                userlist = userlist.Where(a => a.CenterId == searchFilter.centerId).ToList();
+            }
+            if (string.IsNullOrEmpty(searchFilter.searchParam))
             {
 
-                var userlist = dbmet.getUserList().Where(a => a.Status == 3 || a.Status == 4 || a.Status == 6).ToList();
-                totalItems = userlist.Count;
-                totalPages = (int)Math.Ceiling((double)totalItems / int.Parse(page_size.ToString()));
-                items = userlist.Skip((searchFilter.page - 1) * int.Parse(page_size.ToString())).Take(int.Parse(page_size.ToString())).ToList();
+                userlist = userlist.Where(a => a.Status == 3 || a.Status == 4 || a.Status == 6).ToList();
             }
             else
             {
-                var userlist = dbmet.getUserList().Where(a => a.Username == searchFilter.searchParam || a.Fname == searchFilter.searchParam ||
+                userlist = userlist.Where(a => a.Username == searchFilter.searchParam || a.Fname == searchFilter.searchParam ||
                 a.Lname == searchFilter.searchParam || a.Mname == searchFilter.searchParam && a.Status == 3 || a.Status == 4 || a.Status == 6).ToList();
-                totalItems = userlist.Count;
-                totalPages = (int)Math.Ceiling((double)totalItems / int.Parse(page_size.ToString()));
-                items = userlist.Skip((searchFilter.page - 1) * int.Parse(page_size.ToString())).Take(int.Parse(page_size.ToString())).ToList();
             }
+
+
+            totalItems = userlist.Count;
+            totalPages = (int)Math.Ceiling((double)totalItems / int.Parse(page_size.ToString()));
+            items = userlist.Skip((searchFilter.page - 1) * int.Parse(page_size.ToString())).Take(int.Parse(page_size.ToString())).ToList();
 
             var result = new List<PaginationModel>();
             var item = new PaginationModel();
