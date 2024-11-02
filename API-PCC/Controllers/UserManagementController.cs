@@ -716,21 +716,16 @@ namespace API_PCC.Controllers
             int totalPages = 0;
             string page_size = searchFilter.pageSize == 0 ? "10" : searchFilter.pageSize.ToString();
 
-            var userlist = dbmet.getUserList().ToList();
+            var userlist = dbmet.getUserList().Where(a => a.Status == 3 || a.Status == 4 || a.Status == 6).ToList();
 
             if (searchFilter.centerId.HasValue && searchFilter.centerId != 0)
             {
                 userlist = userlist.Where(a => a.CenterId == searchFilter.centerId).ToList();
             }
-            if (string.IsNullOrEmpty(searchFilter.searchParam))
-            {
-
-                userlist = userlist.Where(a => a.Status == 3 || a.Status == 4 || a.Status == 6).ToList();
-            }
-            else
+            if(!string.IsNullOrEmpty(searchFilter.searchParam))
             {
                 userlist = userlist.Where(a => a.Username == searchFilter.searchParam || a.Fname == searchFilter.searchParam ||
-                a.Lname == searchFilter.searchParam || a.Mname == searchFilter.searchParam && a.Status == 3 || a.Status == 4 || a.Status == 6).ToList();
+                a.Lname == searchFilter.searchParam || a.Mname == searchFilter.searchParam).ToList();
             }
 
 
