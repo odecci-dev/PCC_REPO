@@ -957,6 +957,9 @@ FROM            tbl_UserTypeModel INNER JOIN
 
             foreach (DataRow dr in table.Rows)
             {
+                string herdCodeQuery = $@"SELECT Herd_Code FROM H_Buff_Herd WHERE id = '" + dr["HerdId"].ToString() + "' ;";
+                DataTable userHerdCode= db.SelectDb(herdCodeQuery).Tables[0];
+                
                 var item = new TblUsersModel_List();
                 item.Id = int.Parse(dr["Id"].ToString());
                 item.Fullname = dr["Fullname"].ToString();
@@ -997,6 +1000,14 @@ FROM            tbl_UserTypeModel INNER JOIN
                 item.isFarmer = (bool)dr["isFarmer"];
                 item.HerdId = string.IsNullOrEmpty(dr["HerdId"].ToString()) ? "0" : dr["HerdId"].ToString();
 
+                if (userHerdCode.Rows.Count > 0)
+                {
+                    item.HerdCode = userHerdCode.Rows[0]["Herd_Code"].ToString();
+                }
+                else
+                {
+                    item.HerdCode= "0";
+                }
 
 
                 string sql = $@"SELECT [Id]
