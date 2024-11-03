@@ -995,7 +995,7 @@ FROM            tbl_UserTypeModel INNER JOIN
                 item.StatusName = dr["StatusName"].ToString();
                 item.UserAccessId = dr["userAccesasId"].ToString();
                 item.isFarmer = (bool)dr["isFarmer"];
-                item.HerdId = dr["HerdId"] == null ? "0" : dr["HerdId"].ToString();
+                item.HerdId = string.IsNullOrEmpty(dr["HerdId"].ToString()) ? "0" : dr["HerdId"].ToString();
 
 
 
