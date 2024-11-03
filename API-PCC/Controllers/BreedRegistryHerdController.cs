@@ -290,31 +290,62 @@ namespace API_PCC.Controllers
                 return Problem(ex.GetBaseException().ToString());
             }
         }
+
         [HttpPost]
-        public async Task<IActionResult> FarmerList(string HerdId)
+        public async Task<IActionResult> FarmerList(BreedRegistryHerdFarmerSearchFilterModel searchFilter)
         {
+            var result = dbmet.FarmerListView();
 
-            var result = (dynamic)null;
-            if (HerdId != "")
+            if (!string.IsNullOrEmpty(searchFilter.herdId))
             {
-                result = dbmet.FarmerListView().Where(a => a.HerdId == HerdId).ToList();
-                if (result.Count != 0)
-                {
-                    return Ok(result);
-                }
-                else
-                {
-                    return Ok("No Record Found");
-                }
-
+                result = result.Where(a => a.HerdId == searchFilter.herdId).ToList();
             }
-            else
-            {
 
+            if (result.Count == 0)
+            {
                 return Ok("No Record Found");
             }
 
+            var pagedResult = farmersPagedModel(searchFilter, result);
+
+            return Ok(pagedResult);
         }
+
+        public class BreedRegistryHerdFarmerSearchFilterModel
+        {
+            public string? herdId { get; set; }
+            public int page { get; set; }
+            public int pageSize { get; set; }
+        }
+
+        public class BreedRegistryHerdFarmerPagedModel : ApplicationModels.Common.PaginationModel
+        {
+            public List<ListFarmerVM> items { get; set; }
+        }
+
+        private BreedRegistryHerdFarmerPagedModel farmersPagedModel(BreedRegistryHerdFarmerSearchFilterModel searchFilter, List<ListFarmerVM> listFarmers)
+        {
+            int pageSize = searchFilter.pageSize == 0 ? 10 : searchFilter.pageSize;
+            int page = searchFilter.page == 0 ? 1 : searchFilter.page;
+
+            int totalItems = listFarmers.Count;
+            int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+            var pagedItems = listFarmers.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+            return new BreedRegistryHerdFarmerPagedModel
+            {
+                CurrentPage = page.ToString(),
+                PageSize = pageSize.ToString(),
+                TotalRecord = totalItems.ToString(),
+                TotalPage = totalPages.ToString(),
+                NextPage = page >= totalPages ? "0" : (page + 1).ToString(),
+                PrevPage = page == 1 ? "0" : (page - 1).ToString(),
+                items = pagedItems
+            };
+        }
+
+
         public class FeedingTypeId
         {
             public int FarmerFeedId { get; set; }
