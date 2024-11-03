@@ -712,14 +712,14 @@ FROM            tbl_UserTypeModel INNER JOIN
         {
 
             string sql = $@"SELECT  tbl_HerdFarmer.Farmer_Id, tbl_HerdFarmer.Herd_Id, tbl_HerdFarmer.Id, Tbl_Farmers.FirstName, Tbl_Farmers.LastName, H_Feeding_System.FeedingSystemDesc, A_Breed.Breed_Desc, 
-                         PCC_adjusted.dbo.H_Herd_Classification.Herd_Class_Desc, PCC_adjusted.dbo.H_Farmer_Affiliation.F_Desc, PCC_adjusted.dbo.H_Buff_Herd.Herd_Code
-FROM            PCC_adjusted.dbo.H_Buff_Herd INNER JOIN
-                         tbl_HerdFarmer ON PCC_adjusted.dbo.H_Buff_Herd.id = tbl_HerdFarmer.Herd_Id LEFT OUTER JOIN
+                         H_Herd_Classification.Herd_Class_Desc, H_Farmer_Affiliation.F_Desc, H_Buff_Herd.Herd_Code
+                            FROM            H_Buff_Herd INNER JOIN
+                         tbl_HerdFarmer ON H_Buff_Herd.id = tbl_HerdFarmer.Herd_Id LEFT OUTER JOIN
                          tbl_FarmerBreedType INNER JOIN
                          Tbl_Farmers ON tbl_FarmerBreedType.Farmer_Id = Tbl_Farmers.Id INNER JOIN
                          A_Breed ON tbl_FarmerBreedType.BreedType_Id = A_Breed.id INNER JOIN
-                         PCC_adjusted.dbo.H_Herd_Classification ON Tbl_Farmers.FarmerClassification_Id = PCC_adjusted.dbo.H_Herd_Classification.id INNER JOIN
-                         PCC_adjusted.dbo.H_Farmer_Affiliation ON Tbl_Farmers.FarmerAffliation_Id = PCC_adjusted.dbo.H_Farmer_Affiliation.id ON tbl_HerdFarmer.Farmer_Id = Tbl_Farmers.Id LEFT OUTER JOIN
+                         H_Herd_Classification ON Tbl_Farmers.FarmerClassification_Id = H_Herd_Classification.id INNER JOIN
+                         H_Farmer_Affiliation ON Tbl_Farmers.FarmerAffliation_Id = H_Farmer_Affiliation.id ON tbl_HerdFarmer.Farmer_Id = Tbl_Farmers.Id LEFT OUTER JOIN
                          tbl_FarmerFeedingSystem ON Tbl_Farmers.Id = tbl_FarmerFeedingSystem.Farmer_Id LEFT OUTER JOIN
                          H_Feeding_System ON tbl_FarmerFeedingSystem.FeedingSystem_Id = H_Feeding_System.id";
             var result = new List<ListFarmerVM>();
