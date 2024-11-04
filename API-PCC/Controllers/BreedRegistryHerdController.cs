@@ -232,9 +232,11 @@ namespace API_PCC.Controllers
         private IQueryable<BreedRegistryHerd2> FarmerHerdList()
         {
             return (from herd in _context.HBuffHerds
-                        //join farmer in _context.Tbl_Farmers on herd.FarmerId equals farmer.Id
-                        join farmer in _context.TblUsersModels on herd.FarmerId equals farmer.Id
-                        where herd.DeleteFlag == false
+                    join farmer in _context.Tbl_Farmers on herd.FarmerId equals farmer.Id
+                    join farmerUser in _context.TblUsersModels on farmer.User_Id equals farmerUser.Id
+                    where herd.DeleteFlag == false
+
+
 
                     select new BreedRegistryHerd2
                     {
@@ -249,10 +251,10 @@ namespace API_PCC.Controllers
                         DateofApplication = herd.DateCreated,
                         FarmerCount = _context.TblHerdFarmers.Count(farmer => farmer.HerdId == herd.Id).ToString(),
                         FarmManager = farmer != null
-                             ? farmer.Lname + ", " + farmer.Fname
+                             ? farmerUser.Lname + ", " + farmerUser.Fname
                              : "Unknown Manager",
                         FarmerName = farmer != null
-                             ? farmer.Lname + ", " + farmer.Fname
+                             ? farmerUser.Lname + ", " + farmerUser.Fname
                              : "Unknown Manager",
                     }).Distinct().AsQueryable();
         }
@@ -659,9 +661,14 @@ namespace API_PCC.Controllers
                 //                from herdfarmer in farmerGroup.DefaultIfEmpty()
                 //                where herd.DeleteFlag == false && herd.HerdCode.Contains(HerdCode)
 
+                //var buffHerd = (from herd in _context.HBuffHerds
+                //                    //join farmer in _context.Tbl_Farmers on herd.FarmerId equals farmer.Id
+                //                join farmer in _context.TblUsersModels on herd.FarmerId equals farmer.Id
+                //                where herd.DeleteFlag == false && herd.HerdCode.Contains(HerdCode)
+
                 var buffHerd = (from herd in _context.HBuffHerds
-                                    //join farmer in _context.Tbl_Farmers on herd.FarmerId equals farmer.Id
-                                join farmer in _context.TblUsersModels on herd.FarmerId equals farmer.Id
+                                join farmer in _context.Tbl_Farmers on herd.FarmerId equals farmer.Id
+                                join farmerUser in _context.TblUsersModels on farmer.User_Id equals farmerUser.Id
                                 where herd.DeleteFlag == false && herd.HerdCode.Contains(HerdCode)
 
                                 select new BuffHerdRegistryView
@@ -671,7 +678,7 @@ namespace API_PCC.Controllers
                                     HerdName = herd.HerdName,
                                     Center = herd.Center.ToString(),
                                     FarmerId = herd.FarmerId.ToString(),
-                                    FarmerManagerName = farmer.Lname + ", " + farmer.Fname,
+                                    FarmerManagerName = farmerUser.Lname + ", " + farmerUser.Fname,
                                     Address = herd.FarmAddress,
                                 }).Distinct().FirstOrDefault();
 
@@ -861,7 +868,6 @@ namespace API_PCC.Controllers
 
                 if (tbl_isfarmer.Rows.Count != 0)
                 {
-                    //reuse userId if already exists
                     farmerGeneratedId = int.Parse(registrationModel.FarmManager);
                 }
                 else
@@ -886,8 +892,8 @@ namespace API_PCC.Controllers
                     _context.Tbl_Farmers.Add(farmer);
                     await _context.SaveChangesAsync();
 
-                    farmerGeneratedId = farmer.User_Id;
-                    //farmerGeneratedId = farmer.Id;
+                    //farmerGeneratedId = farmer.User_Id;
+                    farmerGeneratedId = farmer.Id;
                 }
 
                 registrationModel.FarmManager = farmerGeneratedId.ToString();
