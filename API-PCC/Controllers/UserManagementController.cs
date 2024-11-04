@@ -641,6 +641,8 @@ namespace API_PCC.Controllers
         }
         public partial class TblUsersModel_List
         {
+            public string FarmerId { get; set; }
+
             public int Id { get; set; }
 
             public string Username { get; set; }
