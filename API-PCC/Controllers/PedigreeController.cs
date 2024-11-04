@@ -488,7 +488,7 @@ namespace API_PCC.Controllers
                 buffHerd.FarmAddress = buffHerd.FarmAddress;
                 buffHerd.FarmAffilCode = buffHerd.FarmAffilCode;
                 buffHerd.FarmManager = buffHerd.FarmManager;
-                buffHerd.HerdClassDesc = tbl_hc.Rows[0]["Herd_Class_Desc"].ToString();
+                buffHerd.HerdClassDesc = tbl_hc == null ? tbl_hc.Rows[0]["Herd_Class_Desc"].ToString() : "";
                 buffHerd.HerdCode = buffHerd.HerdCode;
                 buffHerd.HerdName = buffHerd.HerdName;
                 buffHerd.HerdSize = int.Parse(cow_res);
