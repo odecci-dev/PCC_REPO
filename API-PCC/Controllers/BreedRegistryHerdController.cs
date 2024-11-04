@@ -863,12 +863,11 @@ namespace API_PCC.Controllers
                     return Conflict(status);
                 }
 
-                string isfarmer = $@"SELECT * FROM tbl_Farmers WHERE User_Id = '{registrationModel.FarmManager}'";
-                DataTable tbl_isfarmer = db.SelectDb(isfarmer).Tables[0];
+                var isfarmer = _context.Tbl_Farmers.Where(f => f.User_Id == int.Parse(registrationModel.FarmManager)).FirstOrDefault();
 
-                if (tbl_isfarmer.Rows.Count != 0)
+                if (isfarmer != null)
                 {
-                    farmerGeneratedId = int.Parse(registrationModel.FarmManager);
+                    farmerGeneratedId = isfarmer.Id;
                 }
                 else
                 {
