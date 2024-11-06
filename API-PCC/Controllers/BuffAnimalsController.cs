@@ -272,31 +272,34 @@ namespace API_PCC.Controllers
                              .Where(result => result.center.Id== searchFilter.centerid)
                              .Select(result => result.animal);
 
-            if (!searchFilter.userid.IsNullOrEmpty())
-                query = query.Join(queryh,
-                                   animal => animal.HerdCode,
-                                   herd => herd.HerdCode,
-                                   (animal, herd) => new { animal, herd })
-                             .Join(queryfo,
-                                   combined => combined.herd.Owner,
-                                   owner => owner.Id,
-                                   (combined, farmOwner) => new { combined.animal, farmOwner }) 
-                             .Join(queryu,
-                                   combined => combined.farmOwner.Id, 
-                                   ownerUser => ownerUser.Id,
-                                   (combined, farmOwnerUser) => new { combined.animal, combined.farmOwner, farmOwnerUser }) 
-                             .Where(result => result.farmOwner.FirstName == result.farmOwnerUser.Fname &&
-                                              result.farmOwner.LastName == result.farmOwnerUser.Lname &&
-                                              result.farmOwner.Address == result.farmOwnerUser.Address &&
-                                              result.farmOwnerUser.isFarmer == true &&
-                                              result.farmOwnerUser.Id.ToString().Contains(searchFilter.userid))
-                             .Select(result => result.animal);
-
-            if (searchFilter.groupid.HasValue && searchFilter.groupid != 0)
-                query = query.Where(animal => animal.GroupId.Equals(searchFilter.groupid));
+            //if (!searchFilter.userid.IsNullOrEmpty())
+            //    query = query.Join(queryh,
+            //                       animal => animal.HerdCode,
+            //                       herd => herd.HerdCode,
+            //                       (animal, herd) => new { animal, herd })
+            //                 .Join(queryfo,
+            //                       combined => combined.herd.Owner,
+            //                       owner => owner.Id,
+            //                       (combined, farmOwner) => new { combined.animal, farmOwner }) 
+            //                 .Join(queryu,
+            //                       combined => combined.farmOwner.Id, 
+            //                       ownerUser => ownerUser.Id,
+            //                       (combined, farmOwnerUser) => new { combined.animal, combined.farmOwner, farmOwnerUser }) 
+            //                 .Where(result => result.farmOwner.FirstName == result.farmOwnerUser.Fname &&
+            //                                  result.farmOwner.LastName == result.farmOwnerUser.Lname &&
+            //                                  result.farmOwner.Address == result.farmOwnerUser.Address &&
+            //                                  result.farmOwnerUser.isFarmer == true &&
+            //                                  result.farmOwnerUser.Id.ToString().Contains(searchFilter.userid))
+            //.Select(result => result.animal);
 
             if (!string.IsNullOrEmpty(searchFilter.herdcode))
                 query = query.Where(animal => animal.HerdCode.Equals(searchFilter.herdcode));
+
+            if (!string.IsNullOrEmpty(searchFilter.userid))
+                query = query.Where(animal => animal.FarmerId == int.Parse(searchFilter.userid)); 
+            
+            if (searchFilter.groupid.HasValue && searchFilter.groupid != 0)
+                query = query.Where(animal => animal.GroupId.Equals(searchFilter.groupid));
 
             if (!searchFilter.searchValue.IsNullOrEmpty())
                 query = query.Where(animal =>
