@@ -465,7 +465,7 @@ namespace API_PCC.Controllers
                             DataTable userid = db.SelectDb(sql1).Tables[0];
                             username = userid.Rows[0]["Username"].ToString();
                             string tbl_UsersModel_update = $@"UPDATE [dbo].[tbl_UsersModel] SET 
-                                             [Status] = '5'" +
+                                             [Status] = '4'" +
                                " WHERE id = '" + userid.Rows[0]["id"].ToString() + "'";
                             string result = db.DB_WithParam(tbl_UsersModel_update);
                             status = "Approved Registration";
