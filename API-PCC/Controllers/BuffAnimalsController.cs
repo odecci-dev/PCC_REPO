@@ -295,6 +295,9 @@ namespace API_PCC.Controllers
             if (searchFilter.groupid.HasValue && searchFilter.groupid != 0)
                 query = query.Where(animal => animal.GroupId.Equals(searchFilter.groupid));
 
+            if (!string.IsNullOrEmpty(searchFilter.herdcode))
+                query = query.Where(animal => animal.HerdCode.Equals(searchFilter.herdcode));
+
             if (!searchFilter.searchValue.IsNullOrEmpty())
                 query = query.Where(animal =>
                                animal.AnimalIdNumber.Contains(searchFilter.searchValue) ||

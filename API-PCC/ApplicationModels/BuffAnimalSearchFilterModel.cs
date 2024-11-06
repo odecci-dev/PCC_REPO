@@ -11,6 +11,7 @@
         public int? groupid { get; set; }
         public int? centerid { get; set; }
         public string? userid { get; set; }
+        public string? herdcode { get; set; }
         public SortByModel sortBy { get; set; }
     }
 }
