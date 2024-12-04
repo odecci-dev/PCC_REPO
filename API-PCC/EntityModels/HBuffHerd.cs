@@ -17,12 +17,12 @@ public partial class HBuffHerd
     public string HerdCode { get; set; }
 
     public int? HerdSize { get; set; }
+    public int? GroupId { get; set; }
     public string FarmAffilCode { get; set; }
 
     public string HerdClassDesc { get; set; }
 
     public ICollection<HBuffaloType>? buffaloType { get; set; } = new List<HBuffaloType>();
-
 
     public ICollection<HFeedingSystem>? feedingSystem { get; set; } = new List<HFeedingSystem>();
 

@@ -487,6 +487,7 @@ namespace API_PCC.Controllers
                                            ,[AgreementStatus]
                                            ,[UserType]
                                            ,[isFarmer]
+                                           ,[HerdId]
                                            ,[Delete_Flag])
                                      VALUES
                                            ('" + userTbl.Username + "'" +
@@ -509,6 +510,7 @@ namespace API_PCC.Controllers
                                            "'" + userTbl.AgreementStatus + "'," +
                                            "'" + userTbl.UserType + "'," +
                                            "'" + userTbl.isFarmer + "'," +
+                                           "'" + userTbl.HerdId + "'," +
                                            "'0')";
                     db.DB_WithParam(user_insert);
 
@@ -598,8 +600,18 @@ namespace API_PCC.Controllers
         //        return Problem(ex.GetBaseException().ToString());
         //    }
         //}
+
+        public class CommonSearchFilterWithCenterIdModel
+        {
+            public string? searchParam { get; set; }
+            public int? centerId { get; set; }
+            public int page { get; set; }
+            public int pageSize { get; set; }
+
+        }
+
         [HttpPost]
-        public async Task<ActionResult<IEnumerable<TblUsersModel>>> UserForApprovalList(CommonSearchFilterModel searchFilter)
+        public async Task<ActionResult<IEnumerable<TblUsersModel>>> UserForApprovalList(CommonSearchFilterWithCenterIdModel searchFilter)
         {
             {
 
@@ -629,6 +641,8 @@ namespace API_PCC.Controllers
         }
         public partial class TblUsersModel_List
         {
+            public string FarmerId { get; set; }
+
             public int Id { get; set; }
 
             public string Username { get; set; }
@@ -668,6 +682,8 @@ namespace API_PCC.Controllers
 
             public bool DeleteFlag { get; set; }
             public bool isFarmer { get; set; }
+            public string HerdId{ get; set; }
+            public string HerdCode{ get; set; }
 
             public string CreatedBy { get; set; }
 
@@ -693,28 +709,32 @@ namespace API_PCC.Controllers
             public string UserTypeName { get; set; }
             public ICollection<UserTypeAction_Model>? userAccessModels { get; set; } = new List<UserTypeAction_Model>();
         }
-        private List<PaginationModel> buildUserPagedModel(CommonSearchFilterModel searchFilter)
+
+
+
+        private List<PaginationModel> buildUserPagedModel(CommonSearchFilterWithCenterIdModel searchFilter)
         {
             var items = (dynamic)null;
             int totalItems = 0;
             int totalPages = 0;
             string page_size = searchFilter.pageSize == 0 ? "10" : searchFilter.pageSize.ToString();
-            if (searchFilter.searchParam == null || searchFilter.searchParam == string.Empty)
-            {
 
-                var userlist = dbmet.getUserList().Where(a => a.Status == 3 || a.Status == 4 || a.Status == 6).ToList();
-                totalItems = userlist.Count;
-                totalPages = (int)Math.Ceiling((double)totalItems / int.Parse(page_size.ToString()));
-                items = userlist.Skip((searchFilter.page - 1) * int.Parse(page_size.ToString())).Take(int.Parse(page_size.ToString())).ToList();
-            }
-            else
+            var userlist = dbmet.getUserList().Where(a => a.Status == 3 || a.Status == 4 || a.Status == 6).ToList();
+
+            if (searchFilter.centerId.HasValue && searchFilter.centerId != 0)
             {
-                var userlist = dbmet.getUserList().Where(a => a.Username == searchFilter.searchParam || a.Fname == searchFilter.searchParam ||
-                a.Lname == searchFilter.searchParam || a.Mname == searchFilter.searchParam && a.Status == 3 || a.Status == 4 || a.Status == 6).ToList();
-                totalItems = userlist.Count;
-                totalPages = (int)Math.Ceiling((double)totalItems / int.Parse(page_size.ToString()));
-                items = userlist.Skip((searchFilter.page - 1) * int.Parse(page_size.ToString())).Take(int.Parse(page_size.ToString())).ToList();
+                userlist = userlist.Where(a => a.CenterId == searchFilter.centerId).ToList();
             }
+            if(!string.IsNullOrEmpty(searchFilter.searchParam))
+            {
+                userlist = userlist.Where(a => a.Username == searchFilter.searchParam || a.Fname == searchFilter.searchParam ||
+                a.Lname == searchFilter.searchParam || a.Mname == searchFilter.searchParam).ToList();
+            }
+
+
+            totalItems = userlist.Count;
+            totalPages = (int)Math.Ceiling((double)totalItems / int.Parse(page_size.ToString()));
+            items = userlist.Skip((searchFilter.page - 1) * int.Parse(page_size.ToString())).Take(int.Parse(page_size.ToString())).ToList();
 
             var result = new List<PaginationModel>();
             var item = new PaginationModel();

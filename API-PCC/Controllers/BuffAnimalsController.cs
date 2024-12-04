@@ -40,6 +40,8 @@ namespace API_PCC.Controllers
             public string Animal_Name { get; set; }
             public string Photo { get; set; }
             public string Herd_Code { get; set; }
+            public string Farmer_Id { get; set; }
+            public string Group_Id { get; set; }
             public string RFID_Number { get; set; }
             public string Date_of_Birth { get; set; }
             public string Sex { get; set; }
@@ -252,7 +254,7 @@ namespace API_PCC.Controllers
             IQueryable<ABuffAnimal> query = _context.ABuffAnimals;
             IQueryable<HBuffHerd> queryh = _context.HBuffHerds;
             IQueryable<TblCenterModel> queryc = _context.TblCenterModels;
-            IQueryable<TblFarmOwner> queryfo = _context.TblFarmOwners;
+            IQueryable<TblFarmers> queryfo = _context.Tbl_Farmers;
             IQueryable<TblUsersModel> queryu = _context.TblUsersModels;
 
             query = query.Where(animal => !animal.DeleteFlag);
@@ -270,25 +272,34 @@ namespace API_PCC.Controllers
                              .Where(result => result.center.Id== searchFilter.centerid)
                              .Select(result => result.animal);
 
-            if (!searchFilter.userid.IsNullOrEmpty())
-                query = query.Join(queryh,
-                                   animal => animal.HerdCode,
-                                   herd => herd.HerdCode,
-                                   (animal, herd) => new { animal, herd })
-                             .Join(queryfo,
-                                   combined => combined.herd.Owner,
-                                   owner => owner.Id,
-                                   (combined, farmOwner) => new { combined.animal, farmOwner }) 
-                             .Join(queryu,
-                                   combined => combined.farmOwner.Id, 
-                                   ownerUser => ownerUser.Id,
-                                   (combined, farmOwnerUser) => new { combined.animal, combined.farmOwner, farmOwnerUser }) 
-                             .Where(result => result.farmOwner.FirstName == result.farmOwnerUser.Fname &&
-                                              result.farmOwner.LastName == result.farmOwnerUser.Lname &&
-                                              result.farmOwner.Address == result.farmOwnerUser.Address &&
-                                              result.farmOwnerUser.isFarmer == true &&
-                                              result.farmOwnerUser.Id.ToString().Contains(searchFilter.userid))
-                             .Select(result => result.animal);
+            //if (!searchFilter.userid.IsNullOrEmpty())
+            //    query = query.Join(queryh,
+            //                       animal => animal.HerdCode,
+            //                       herd => herd.HerdCode,
+            //                       (animal, herd) => new { animal, herd })
+            //                 .Join(queryfo,
+            //                       combined => combined.herd.Owner,
+            //                       owner => owner.Id,
+            //                       (combined, farmOwner) => new { combined.animal, farmOwner }) 
+            //                 .Join(queryu,
+            //                       combined => combined.farmOwner.Id, 
+            //                       ownerUser => ownerUser.Id,
+            //                       (combined, farmOwnerUser) => new { combined.animal, combined.farmOwner, farmOwnerUser }) 
+            //                 .Where(result => result.farmOwner.FirstName == result.farmOwnerUser.Fname &&
+            //                                  result.farmOwner.LastName == result.farmOwnerUser.Lname &&
+            //                                  result.farmOwner.Address == result.farmOwnerUser.Address &&
+            //                                  result.farmOwnerUser.isFarmer == true &&
+            //                                  result.farmOwnerUser.Id.ToString().Contains(searchFilter.userid))
+            //.Select(result => result.animal);
+
+            if (!string.IsNullOrEmpty(searchFilter.herdcode))
+                query = query.Where(animal => animal.HerdCode.Equals(searchFilter.herdcode));
+
+            if (!string.IsNullOrEmpty(searchFilter.userid))
+                query = query.Where(animal => animal.FarmerId == int.Parse(searchFilter.userid)); 
+            
+            if (searchFilter.groupid.HasValue && searchFilter.groupid != 0)
+                query = query.Where(animal => animal.GroupId.Equals(searchFilter.groupid));
 
             if (!searchFilter.searchValue.IsNullOrEmpty())
                 query = query.Where(animal =>
@@ -1042,7 +1053,7 @@ namespace API_PCC.Controllers
         private ABuffAnimal animalRecordCheck(Animal animal)
         {
             var animalRecord = _context.ABuffAnimals
-                                        .Where(buffAnimal => buffAnimal.RfidNumber.Equals(animal.RegistrationNumber) &&
+                                        .Where(buffAnimal => buffAnimal.breedRegistryNumber.Equals(animal.RegistrationNumber) &&
                                                 buffAnimal.AnimalIdNumber.Equals(animal.IdNumber) &&
                                                 buffAnimal.AnimalName.Equals(animal.Name) &&
                                                 buffAnimal.BreedCode.Equals(animal.BreedCode) &&
@@ -1253,7 +1264,7 @@ namespace API_PCC.Controllers
             {
 
                 var buffHerds = _context.HBuffHerds;
-                var farmOwners = _context.TblFarmOwners;
+                var farmOwners = _context.Tbl_Farmers;
 
                 var ownerDetails = buffHerds
                                     .Where(herd => herd.HerdCode.Equals(buffAnimal.HerdCode))
@@ -1474,7 +1485,9 @@ namespace API_PCC.Controllers
                 BloodCode = int.Parse(table1.Rows[0]["id"].ToString()),
                 Sire = populateAnimalModel(buffAnimal.Id),
                 Dam = populatedamAnimalModel(buffAnimal.Id),
-                breedRegistryNumber = buffAnimal.breedRegistryNumber
+                breedRegistryNumber = buffAnimal.breedRegistryNumber,
+                GroudId = buffAnimal.GroupId,
+                FarmerId = buffAnimal.FarmerId
 
 
             };
@@ -1540,6 +1553,18 @@ namespace API_PCC.Controllers
             {
                 buffAnimal.BloodCode = updateModel.BloodCode;
             }
+            if (updateModel.breedRegistryNumber != null && updateModel.breedRegistryNumber != "")
+            {
+                buffAnimal.breedRegistryNumber = updateModel.breedRegistryNumber;
+            }
+            if (updateModel.FarmerId.HasValue)
+            {
+                buffAnimal.FarmerId = updateModel.FarmerId;
+            }
+            if (updateModel.GroudId.HasValue)
+            {
+                buffAnimal.GroupId = updateModel.GroudId;
+            }
             return buffAnimal;
         }
 
@@ -1569,6 +1594,8 @@ namespace API_PCC.Controllers
                 Photo = registrationModel.Photo,
                 HerdCode = registrationModel.HerdCode,
                 RfidNumber = registrationModel.RfidNumber,
+                FarmerId = registrationModel.FarmerId,
+                GroupId = registrationModel.GroudId,
                 DateOfBirth = registrationModel.DateOfBirth,
                 Sex = registrationModel.Sex,
                 BreedCode = registrationModel.BreedCode,
@@ -1578,6 +1605,7 @@ namespace API_PCC.Controllers
                 Marking = registrationModel.Marking,
                 TypeOfOwnership = registrationModel.TypeOfOwnership,
                 BloodCode = registrationModel.BloodCode,
+
 
                 breedRegistryNumber = string.IsNullOrEmpty(registrationModel.breedRegistryNumber) ? BreedRegistryNumber : registrationModel.breedRegistryNumber
             };

@@ -145,6 +145,7 @@ namespace API_PCC.Controllers
             public int? Status { get; set; }
             public string? CreatedBy { get; set; }
 
+            public int? HerdId { get; set; }
             public int? CenterId { get; set; }
 
             public bool? AgreementStatus { get; set; }
@@ -163,17 +164,19 @@ namespace API_PCC.Controllers
             return Ok(userlist);
         }
         [HttpPost]
-        public async Task<ActionResult<IEnumerable<TblUsersModel>>> UpdateProfile(int id, string profileimage, string fName, string lName, string email, string contNum, string address, string username)
+        public async Task<ActionResult<IEnumerable<TblUsersModel>>> UpdateProfile(int id, string profileimage, string fName, string mName, string lName, string email, string contNum, string address, string username, string herdId)
         {
             string tbl_UsersModel_update = $@"UPDATE [dbo].[tbl_UsersModel] SET 
                                              [FilePath] = '" + profileimage + "'," +
                                              "[Fname] = '" + fName + "'," +
+                                             "[Mname] = '" + mName + "'," +
                                              "[Lname] = '" + lName + "'," +
-                                             "[Fullname] = '" + fName + " " + lName + "'," +
+                                             "[Fullname] = '" + fName + " " + mName + " " + lName + "'," +
                                              "[Email] = '" + email + "'," +
                                              "[Cno] = '" + contNum + "'," +
                                              "[Address] = '" + address + "'," +
-                                             "[Username] = '" + username + "'" +
+                                             "[Username] = '" + username + "', " +
+                                             "[HerdId] = '" + herdId + "'" +
                                          " WHERE id = '" + id + "'";
             string result = db.DB_WithParam(tbl_UsersModel_update);
             return Ok(result);
@@ -326,27 +329,40 @@ namespace API_PCC.Controllers
             var userlist = dbmet.getUserList().ToList();
 
             //no center to base the list on
-            if (string.IsNullOrEmpty(searchFilter.centerId))
-            {
-                userlist.Clear();
-            }
+            //if (string.IsNullOrEmpty(searchFilter.centerId))
+            //{
+            //    userlist.Clear();
+            //}
             if (!searchFilter.centerId.Equals("0") && !string.IsNullOrEmpty(searchFilter.centerId))
             {
                 userlist = userlist.Where(a => a.CenterId.ToString().Equals(searchFilter.centerId)).ToList();
             }
-            if (!string.IsNullOrEmpty(searchFilter.dateRegistered))
+
+            if (!searchFilter.herdId.Equals("0") && !string.IsNullOrEmpty(searchFilter.herdId))
             {
-                if (DateTime.TryParse(searchFilter.dateRegistered, out DateTime registeredDate))
+                userlist = userlist.Where(a => a.HerdId.ToString().Equals(searchFilter.herdId)).ToList();
+            }
+
+            if (searchFilter.farmerSearching == true)
+            {
+                userlist = userlist.Where(a => a.isFarmer == true).ToList();
+            }
+
+            if (!string.IsNullOrEmpty(searchFilter.dateRegisteredFrom) && !string.IsNullOrEmpty(searchFilter.dateRegisteredTo))
+            {
+                if (DateTime.TryParse(searchFilter.dateRegisteredFrom, out DateTime dateFrom) &&
+                    DateTime.TryParse(searchFilter.dateRegisteredTo, out DateTime dateTo))
                 {
-                    // Filter userlist by date, ignoring the time part
-                    userlist = userlist.Where(a => DateTime.Parse(a.DateCreated).Date == registeredDate.Date).ToList();
+                    userlist = userlist.Where(a => DateTime.Parse(a.DateCreated).Date >= dateFrom.Date &&
+                                                   DateTime.Parse(a.DateCreated).Date <= dateTo.Date).ToList();
                 }
                 else
                 {
-                    userlist.Clear();
+                    userlist.Clear(); 
                 }
             }
-                if (searchFilter.searchParam == null || searchFilter.searchParam == string.Empty)
+
+            if (searchFilter.searchParam == null || searchFilter.searchParam == string.Empty)
                 {
                     totalItems = userlist.Count;
                     totalPages = (int)Math.Ceiling((double)totalItems / int.Parse(page_size.ToString()));
@@ -449,7 +465,7 @@ namespace API_PCC.Controllers
                             DataTable userid = db.SelectDb(sql1).Tables[0];
                             username = userid.Rows[0]["Username"].ToString();
                             string tbl_UsersModel_update = $@"UPDATE [dbo].[tbl_UsersModel] SET 
-                                             [Status] = '5'" +
+                                             [Status] = '4'" +
                                " WHERE id = '" + userid.Rows[0]["id"].ToString() + "'";
                             string result = db.DB_WithParam(tbl_UsersModel_update);
                             status = "Approved Registration";
@@ -489,6 +505,8 @@ namespace API_PCC.Controllers
         public async Task<ActionResult<TblUsersModel>> register(RegistrationModel userTbl)
         {
             string filepath = "";
+            bool? _IsFarmer = false;
+            int? _Center = 0;
             var user_list = dbmet.getUserList().AsEnumerable().Where(a => a.Username.Equals(userTbl.Username, StringComparison.Ordinal)).ToList();
             if (user_list.Count == 0)
             {
@@ -558,6 +576,10 @@ namespace API_PCC.Controllers
                     Stats = "Ok";
                     Mess = "User is for Verification, OTP Already Send!";
                     JWT = string.Concat(strtokenresult.TakeLast(15));
+                    _IsFarmer = userTbl.isFarmer;
+                    _Center = userTbl.CenterId;
+                    
+                    
                 }
             }
             else
@@ -570,7 +592,9 @@ namespace API_PCC.Controllers
             {
                 Status = Stats,
                 Message = Mess,
-                JwtToken = JWT
+                JwtToken = JWT,
+                isFarmer = _IsFarmer,
+                Center = _Center
             };
             dbmet.InsertAuditTrail("Register " + Stats + " " + Mess, DateTime.Now.ToString("yyyy-MM-dd"), "User Module", userTbl.Username, "0");
             return Ok(result);
@@ -601,7 +625,8 @@ namespace API_PCC.Controllers
                                ,[CenterId]
                                ,[AgreementStatus]
                                ,[isFarmer]
-                               ,[UserType])
+                               ,[UserType]
+                               ,[HerdId])
                                  VALUES
                                        ('" + registrationModel.Username + "'," +
                                        "'" + Cryptography.Encrypt(registrationModel.Password) + "'," +
@@ -624,7 +649,8 @@ namespace API_PCC.Controllers
                                         "'" + registrationModel.CenterId + "'," +
                                        "'" + registrationModel.AgreementStatus + "'," +
                                        "'" + registrationModel.isFarmer + "'," +
-                                       "'" + registrationModel.UserType + "')";
+                                       "'" + registrationModel.UserType + "'," +
+                                       "'" + registrationModel.HerdId + "' )";
             string test = db.DB_WithParam(user_insert);
 
             return test;

@@ -1,5 +1,6 @@
 ﻿using API_PCC.ApplicationModels;
 using API_PCC.Models;
+using System.Text;
 using static API_PCC.Controllers.BuffAnimalsController;
 
 namespace API_PCC.Utils
@@ -48,7 +49,7 @@ namespace API_PCC.Utils
 
         public static String buildHerdOwnerJoinQuery(String herdCode)
         {
-            return "SELECT FA.* FROM H_BUFF_HERD BH INNER JOIN TBL_FARMOWNER FA ON BH.OWNER = FA.ID where BH.HERD_CODE = '" + herdCode + "'";
+            return "SELECT FA.* FROM H_BUFF_HERD BH INNER JOIN TBL_FARMERS FA ON BH.OWNER = FA.ID where BH.HERD_CODE = '" + herdCode + "'";
         }
         public static String buildHerdViewQuery()
         {
@@ -122,38 +123,61 @@ namespace API_PCC.Utils
 
         public static String buildFarmerSearchByFirstNameLastNameAddress()
         {
-            String farmerSelect = Constants.DBQuery.FARMERS_SELECT + "WHERE Tbl_Farmers.Is_Deleted = 0 AND Tbl_Farmers.Id = @Id AND FirstName = '@FirstName' AND LastName = '@LastName' AND Address = '@Address'";
+            String farmerSelect = Constants.DBQuery.FARMERS_SELECT + "WHERE Tbl_Farmers.Is_Deleted = 0 AND (Tbl_Farmers.Id = @Id AND FirstName = '@FirstName' AND LastName = '@LastName' AND Address = '@Address') OR User_Id = @UserId";
 
             return farmerSelect;
         }
 
-        public static String buildFarmerSearch(FarmerSearchFilterModel searchFilterModel)
+        public static string buildFarmerSearch(FarmerSearchFilterModel searchFilterModel)
         {
-            String farmerSelect = Constants.DBQuery.FARMERS_SELECT + "WHERE Tbl_Farmers.Is_Deleted = 0 ";
-            String farmerSortByBreedType = Constants.DBQuery.FARMERS_SELECT + @$"LEFT JOIN 
-                                                                    tbl_FarmerBreedType ON Tbl_Farmers.Id = tbl_FarmerBreedType.Farmer_Id
-                                                                    WHERE Tbl_Farmers.Is_Deleted = 0 ";
-            String farmerSortByFeedingSystem = Constants.DBQuery.FARMERS_SELECT + @$"LEFT JOIN 
-                                                                    tbl_FarmerFeedingSystem ON Tbl_Farmers.Id = tbl_FarmerFeedingSystem.Farmer_Id
-                                                                    WHERE Tbl_Farmers.Is_Deleted = 0 ";
-            if (!string.IsNullOrEmpty(searchFilterModel.breedType))
+            string farmerSelect = Constants.DBQuery.HERDFARMERS_SELECT;
+            string joins = @$"LEFT JOIN tbl_HerdFarmer hf ON f.Id = hf.Farmer_Id
+                                LEFT JOIN H_Buff_Herd bh ON hf.Herd_Id = bh.id
+                                LEFT JOIN tbl_UsersModel u ON f.User_Id = u.Id";
+            string whereClause = "WHERE f.Is_Deleted = 0 ";
+
+
+            if (searchFilterModel.center.HasValue && searchFilterModel.center != 0)
             {
-                farmerSelect = farmerSortByBreedType + "AND tbl_FarmerBreedType.BreedType_Id = @BreedType ; ";
+                whereClause += " AND bh.Center = @CenterId";
             }
-            if (!string.IsNullOrEmpty(searchFilterModel.feedingSystem))
+
+            if (searchFilterModel.herdId.HasValue && searchFilterModel.herdId != 0)
             {
-                farmerSelect = farmerSortByFeedingSystem + "AND tbl_FarmerFeedingSystem.FeedingSystem_Id = @FeedingSystem ; ";
+                whereClause += " AND hf.Herd_Id = @HerdId";
             }
+
+            if (searchFilterModel.breedType != null && searchFilterModel.breedType.Any())
+            {
+                joins += @" LEFT JOIN tbl_FarmerBreedType 
+                    ON f.Id = tbl_FarmerBreedType.Farmer_Id";
+
+                var breedTypeParams = string.Join(", ", searchFilterModel.breedType.Select((_, i) => $"@BreedType{i}"));
+                whereClause += $" AND tbl_FarmerBreedType.BreedType_Id IN ({breedTypeParams})";
+            }
+
+            if (searchFilterModel.feedingSystem != null && searchFilterModel.feedingSystem.Any())
+            {
+                joins += @" LEFT JOIN tbl_FarmerFeedingSystem 
+                    ON f.Id = tbl_FarmerFeedingSystem.Farmer_Id";
+
+                var feedingSystemParams = string.Join(", ", searchFilterModel.feedingSystem.Select((_, i) => $"@FeedingSystem{i}"));
+                whereClause += $" AND tbl_FarmerFeedingSystem.FeedingSystem_Id IN ({feedingSystemParams})";
+            }
+
             if (!string.IsNullOrEmpty(searchFilterModel.searchValue))
             {
-                farmerSelect = farmerSelect + "AND (FirstName LIKE '%' + @SearchParam + '%' OR LastName LIKE '%' + @SearchParam + '%'); ";
+                whereClause += " AND (u.Fname LIKE '%' + @SearchParam + '%' OR u.Lname LIKE '%' + @SearchParam + '%')";
             }
-            //if (searchFilterModel.breedType != null && searchFilterModel.breedType != "")
-            //{
-            //    farmerSelect = farmerSelect + "AND (FirstName LIKE '%' + @SearchParam + '%') ";
-            //}
-            return farmerSelect;
+
+            string finalQuery = $"{farmerSelect} {joins} {whereClause}";
+            return finalQuery;
         }
+
+
+
+
+
 
         public static String buildFarmOwnerSearchQueryById()
         {

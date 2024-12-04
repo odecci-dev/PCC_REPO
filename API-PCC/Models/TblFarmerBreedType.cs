@@ -7,11 +7,11 @@ namespace API_PCC.EntityModels;
 
 public partial class TblFarmerBreedType
 {
-    public int? Id { get; set; }
+    public int Id { get; set; }
 
-    public int? FarmerId { get; set; }
+    public int FarmerId { get; set; }
 
-    public int? BreedTypeId { get; set; }
+    public int BreedTypeId { get; set; }
 
     public int? CreatedBy { get; set; }
 

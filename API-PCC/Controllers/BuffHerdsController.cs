@@ -324,7 +324,7 @@ namespace API_PCC.Controllers
                 return Conflict(status);
             }
 
-            string farmOwner_update = $@"UPDATE [dbo].[tbl_FarmOwner] SET 
+            string farmOwner_update = $@"UPDATE [dbo].[tbl_Farmers] SET 
                                              [FirstName] = '" + registrationModel.Owner.FirstName + "'" +
                                             ",[LastName] = '" + registrationModel.Owner.LastName + "'" +
                                             ",[Address] = '" + registrationModel.Owner.Address + "'" +
@@ -394,7 +394,7 @@ namespace API_PCC.Controllers
                 if (farmOwnerRecordsCheck.Rows.Count == 0)
                 {
                     // Create new Farm Owner Record
-                    string user_insert = $@"INSERT INTO [dbo].[tbl_FarmOwner]
+                    string user_insert = $@"INSERT INTO [dbo].[tbl_Farmers]
                                                 ([FirstName]
                                                 ,[LastName]
                                                 ,[Address]
@@ -537,7 +537,7 @@ namespace API_PCC.Controllers
                     if (farmOwnerRecordsCheck.Rows.Count == 0)
                     {
                         // Create new Farm Owner Record
-                        string user_insert = $@"INSERT INTO [dbo].[tbl_FarmOwner]
+                        string user_insert = $@"INSERT INTO [dbo].[tbl_Farmers]
                                                 ([FirstName]
                                                 ,[LastName]
                                                 ,[Address]
@@ -1206,7 +1206,7 @@ namespace API_PCC.Controllers
                 DataTable cow_lvl_tbl = db.SelectDb(cow_lvl).Tables[0];
                 string cow_res = cow_lvl_tbl.Rows.Count == 0 ? "0" : cow_lvl_tbl.Rows[0]["cowlevel"].ToString();
 
-                string owner = $@"SELECT * FROM tbl_FarmOwner WHERE Id='{buffHerd.Owner}'";
+                string owner = $@"SELECT * FROM tbl_Farmers WHERE Id='{buffHerd.Owner}'";
                 DataTable owner_row = db.SelectDb(owner).Tables[0];
 
                 string farmerAff = $@"SELECT * FROM H_Farmer_Affiliation WHERE F_Code='{buffHerd.FarmAffilCode}'";

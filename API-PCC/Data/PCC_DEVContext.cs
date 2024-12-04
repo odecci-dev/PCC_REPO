@@ -80,6 +80,53 @@ public partial class PCC_DEVContext : DbContext
    
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<HBuffHerd>()
+        .HasMany(e => e.buffaloType)
+        .WithMany(e => e.buffHerd)
+        .UsingEntity<BuffHerdJoinTable>();
+
+            modelBuilder.Entity<HBuffHerd>()
+                .HasMany(e => e.feedingSystem)
+                .WithMany(e => e.buffHerd)
+                .UsingEntity<BuffHerdJoinTable>();
+            modelBuilder.Entity<TblUsersModel>()
+               .HasMany(e => e.userAccessModels)
+               .WithOne(e => e.userModel)
+               .HasForeignKey(e => e.userModelId);
+
+            modelBuilder.Entity<UserAccessModel>()
+                .HasMany(e => e.userAccess)
+                .WithOne(e => e.accessModel)
+                .HasForeignKey(e => e.userAccessModelId);
+
+            modelBuilder.Entity<ABuffAnimal>()
+            .HasOne<A_Family>()
+            .WithOne(e => e.sire)
+            .HasForeignKey<A_Family>(e => e.sireId)
+            .IsRequired();
+
+            modelBuilder.Entity<ABuffAnimal>()
+            .HasOne<A_Family>()
+            .WithOne(e => e.dam)
+              .HasForeignKey<A_Family>(e => e.damId)
+            .IsRequired();
+
+        modelBuilder.Entity<BuffHerdJoinTable>(entity =>
+        {
+            entity.ToTable("tbl_Join_BuffHerd");
+
+            entity.HasKey(e => e.BuffHerdJoinTableId).HasName("PK_tbl_Join_BuffHerd");
+
+            entity.Property(e => e.BuffHerdJoinTableId)
+                  .HasColumnName("Join_BuffHerd_Id");
+            entity.Property(e => e.BuffaloTypeId)
+                  .HasColumnName("Buffalo_Type_Id");
+            entity.Property(e => e.BuffHerdId)
+                  .HasColumnName("Buff_Herd_Id");
+            entity.Property(e => e.FeedingSystemId)
+                 .HasColumnName("Feeding_System_Id");
+        });
+
         modelBuilder.Entity<TblFarmerBreedType>().HasNoKey(); // Ensure it's a keyless entity
         modelBuilder.Entity<ABirthType>(entity =>
         {
@@ -705,14 +752,19 @@ public partial class PCC_DEVContext : DbContext
                 .IsUnicode(false);
         });
 
-        modelBuilder.Entity<TblBloodCalculator>(entity =>
+        modelBuilder.Entity<TblBLoodCalculator>(entity =>
         {
+            entity.HasKey(e => e.Id).HasName("PK_TblBLoodCalculator");
             entity.ToTable("TblBLoodCalculator");
 
-            entity.Property(e => e.Criteria).IsUnicode(false);
-            entity.Property(e => e.DateCreated).HasColumnType("datetime");
-            entity.Property(e => e.Formula).IsUnicode(false);
-            entity.Property(e => e.Name).IsUnicode(false);
+            entity.Property(e => e.Id)
+                .HasColumnName("Id");
+            entity.Property(e => e.Name)
+                .HasColumnName("Name");
+            entity.Property(e => e.Criteria)
+                .HasColumnName("Criteria");
+            entity.Property(e => e.Formula)
+                .HasColumnName("Formula");
         });
 
         modelBuilder.Entity<TblCenterModel>(entity =>
@@ -810,8 +862,10 @@ public partial class PCC_DEVContext : DbContext
 
         modelBuilder.Entity<TblFarmerBreedType>(entity =>
         {
+            entity.HasKey(e => e.Id).HasName("PK_tbl_FarmerBreedType");
+
             entity
-                .HasNoKey()
+                //.HasNoKey()
                 .ToTable("tbl_FarmerBreedType");
 
             entity.Property(e => e.BreedTypeId).HasColumnName("BreedType_Id");
