@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Data;
 using System.Data.SqlClient;
+using System.IO;
 using System.Linq.Dynamic.Core;
 using System.Text.Json;
 using static AngouriMath.Entity.Number;
@@ -406,7 +407,7 @@ namespace API_PCC.Controllers
             string refno = Uri.UnescapeDataString(referenceNumber);
             dbmet.insertlgos(filePath, JsonSerializer.Serialize(referenceNumber));
             var buffAnimal = _context.ABuffAnimals.Where(animal =>
-                        !animal.DeleteFlag && (animal.AnimalIdNumber.Equals(refno) || animal.AnimalIdNumber.Equals(refno)))
+                        !animal.DeleteFlag && (animal.FarmerId.Equals(refno) || animal.FarmerId.Equals(int.Parse(refno))))
                         .FirstOrDefault();
             if (buffAnimal == null)
             {
