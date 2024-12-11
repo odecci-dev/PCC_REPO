@@ -24,6 +24,7 @@ using System.Linq;
 using API_PCC.DtoModels;
 using static API_PCC.Controllers.BreedRegistryHerdController;
 using Antlr4.Runtime;
+using System;
 namespace API_PCC.Controllers
 {
     [Authorize("ApiKey")]
@@ -519,7 +520,7 @@ namespace API_PCC.Controllers
                                           "'0') ";
                 }
 
-
+                
 
                 return Ok("Successfully Saved" + db.DB_WithParam(Insert));
             }
@@ -915,7 +916,7 @@ namespace API_PCC.Controllers
 
 
                 status = "Herd successfully registered!";
-                dbmet.InsertAuditTrail("Save Buffalo Herd" + " " + status, DateTime.Now.ToString("yyyy-MM-dd"), "Herd Module", registrationModel.CreatedBy, "0");
+                dbmet.InsertAuditTrailv2("Save Buffalo Herd" + " " + status, DateTime.Now.ToString("yyyy-MM-dd"), "Herd Module", registrationModel.CreatedBy, "0", farmerGeneratedId.ToString());
 
                 return Ok(status);
             }
@@ -968,7 +969,7 @@ namespace API_PCC.Controllers
                 _context.Entry(buffHerd).State = EntityState.Modified;
                 _context.SaveChanges();
                 status = "Update Successful!";
-                dbmet.InsertAuditTrail("Update Buffalo Herd" + " " + status, DateTime.Now.ToString("yyyy-MM-dd"), "Herd Module", buffHerd.UpdatedBy, "0");
+                dbmet.InsertAuditTrailv2("Update Buffalo Herd" + " " + status, DateTime.Now.ToString("yyyy-MM-dd"), "Herd Module", buffHerd.UpdatedBy, "0",id.ToString());
                 return Ok(status);
             }
             catch (Exception ex)
@@ -1245,6 +1246,219 @@ namespace API_PCC.Controllers
             });
 
             return sqlParameters.ToArray();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ArchiveMultiple(List<DeletionModel> deletionModelList)
+        {
+            if (_context.HBuffHerds == null)
+            {
+                return Problem("Entity set 'PCC_DEVContext.HBuffHerds' is null!");
+            }
+
+            try
+            {
+                var idsToCheck = deletionModelList.Select(d => d.id).ToList();
+                var tblHBuffHerdsModels = await _context.HBuffHerds
+                    .Where(model => idsToCheck.Contains(model.Id))
+                    .ToListAsync();
+
+                var recordsToDelete = tblHBuffHerdsModels
+                    .Where(model => !model.DeleteFlag)
+                    .ToList();
+
+                if (recordsToDelete.Count != idsToCheck.Count)
+                {
+                    return Conflict("Some records have no match or are already marked for deletion!");
+                }
+
+                //foreach (var tblCenterModel in recordsToDelete)
+                //{
+                //    bool centerNameExistsInBuffHerd = _context.HBuffHerds
+                //        .Any(buffHerd => !buffHerd.DeleteFlag && buffHerd.Center == tblCenterModel.Id);
+
+                //    if (centerNameExistsInBuffHerd)
+                //    {
+                //        return Conflict("One or more records are used by other tables!");
+                //    }
+                //}
+
+                foreach (DeletionModel deletionModel in deletionModelList)
+                {
+                    var tblHBuffHerdsModel = tblHBuffHerdsModels.FirstOrDefault(model => model.Id == deletionModel.id);
+
+                    if (tblHBuffHerdsModel == null)
+                    {
+                        continue;
+                    }
+
+                    tblHBuffHerdsModel.DeleteFlag = true;
+                    tblHBuffHerdsModel.DateDeleted = DateTime.Now;
+                    tblHBuffHerdsModel.DeletedBy = deletionModel.deletedBy;
+                    tblHBuffHerdsModel.DateRestored = null;
+                    tblHBuffHerdsModel.RestoredBy = "";
+
+                    status = "Delete Successful!";
+                    dbmet.InsertAuditTrailv2("Delete Buffalo Herd" + " " + status, DateTime.Now.ToString("yyyy-MM-dd"), "Herd Module", tblHBuffHerdsModel.DeletedBy, "0", deletionModel.id.ToString());
+
+                    _context.Entry(tblHBuffHerdsModel).State = EntityState.Modified;
+                }
+
+                await _context.SaveChangesAsync();
+
+                return Ok("Deletion Successful!");
+            }
+            catch (Exception ex)
+            {
+                return Problem(ex.GetBaseException().ToString());
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ArchiveSingle(DeletionModel deletionModel)
+        {
+            if (_context.HBuffHerds == null)
+            {
+                return Problem("Entity set 'PCC_DEVContext.HBuffHerds' is null!");
+            }
+
+            try
+            {
+
+                var tblHBuffHerdModel = _context.HBuffHerds.FirstOrDefault(model => model.Id == deletionModel.id && !model.DeleteFlag);
+
+                if (tblHBuffHerdModel == null)
+                {
+                    return Conflict("Records have no match or are already marked for deletion!");
+                }
+
+                tblHBuffHerdModel.DeleteFlag = true;
+                tblHBuffHerdModel.DateDeleted = DateTime.Now;
+                tblHBuffHerdModel.DeletedBy = deletionModel.deletedBy;
+                tblHBuffHerdModel.DateRestored = null;
+                tblHBuffHerdModel.RestoredBy = "";
+                _context.Entry(tblHBuffHerdModel).State = EntityState.Modified;
+
+
+                await _context.SaveChangesAsync();
+
+                status = "Delete Successful!";
+                dbmet.InsertAuditTrailv2("Delete Buffalo Herd" + " " + status, DateTime.Now.ToString("yyyy-MM-dd"), "Herd Module", tblHBuffHerdModel.DeletedBy, "0", deletionModel.id.ToString());
+
+
+                return Ok("Deletion Successful!");
+            }
+            catch (Exception ex)
+            {
+                return Problem(ex.GetBaseException().ToString());
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> RestoreMultiple(List<RestorationModel> restorationModelList)
+        {
+            if (_context.HBuffHerds == null)
+            {
+                return Problem("Entity set 'PCC_DEVContext.HBuffHerds' is null!");
+            }
+
+            try
+            {
+                var idsToCheck = restorationModelList.Select(d => d.id).ToList();
+                var tblHBuffHerdModels = await _context.HBuffHerds
+                    .Where(model => idsToCheck.Contains(model.Id))
+                    .ToListAsync();
+
+                var recordsToRestore = tblHBuffHerdModels
+                    .Where(model => model.DeleteFlag)
+                    .ToList();
+
+                if (recordsToRestore.Count != idsToCheck.Count)
+                {
+                    return Conflict("Some records have no match or are already active!");
+                }
+
+                //foreach (var tblCenterModel in recordsToDelete)
+                //{
+                //    bool centerNameExistsInBuffHerd = _context.HBuffHerds
+                //        .Any(buffHerd => !buffHerd.DeleteFlag && buffHerd.Center == tblCenterModel.Id);
+
+                //    if (centerNameExistsInBuffHerd)
+                //    {
+                //        return Conflict("One or more records are used by other tables!");
+                //    }
+                //}
+
+                foreach (RestorationModel restorationModel in restorationModelList)
+                {
+                    var tblHBuffHerdModel = tblHBuffHerdModels.FirstOrDefault(model => model.Id == restorationModel.id);
+
+                    if (tblHBuffHerdModel == null)
+                    {
+                        continue;
+                    }
+
+                    tblHBuffHerdModel.DeleteFlag = false;
+                    tblHBuffHerdModel.DateDeleted = null;
+                    tblHBuffHerdModel.DeletedBy = "";
+                    tblHBuffHerdModel.DateRestored = DateTime.Now;
+                    tblHBuffHerdModel.RestoredBy = restorationModel.restoredBy;
+
+                    status = "Restore Successful!";
+                    dbmet.InsertAuditTrailv2("Restore Buffalo Herd" + " " + status, DateTime.Now.ToString("yyyy-MM-dd"), "Herd Module", tblHBuffHerdModel.RestoredBy, "0", restorationModel.id.ToString());
+
+
+                    _context.Entry(tblHBuffHerdModel).State = EntityState.Modified;
+                }
+
+                await _context.SaveChangesAsync();
+
+                return Ok("Restoration Successful!");
+            }
+            catch (Exception ex)
+            {
+                return Problem(ex.GetBaseException().ToString());
+            }
+        }
+        [HttpPost]
+        public async Task<IActionResult> RestoreSingle(RestorationModel restorationModel)
+        {
+            if (_context.HBuffHerds == null)
+            {
+                return Problem("Entity set 'PCC_DEVContext.HBuffHerds' is null!");
+            }
+
+            try
+            {
+
+                var tblHBuffHerdModel = _context.HBuffHerds.FirstOrDefault(model => model.Id == restorationModel.id && model.DeleteFlag);
+
+                if (tblHBuffHerdModel == null)
+                {
+                    return Conflict("Records have no match or are already marked for deletion!");
+                }
+
+                tblHBuffHerdModel.DeleteFlag = false;
+                tblHBuffHerdModel.DateDeleted = null;
+                tblHBuffHerdModel.DeletedBy = "";
+                tblHBuffHerdModel.DateRestored = DateTime.Now;
+                tblHBuffHerdModel.RestoredBy = restorationModel.restoredBy;
+
+                status = "Restore Successful!";
+                dbmet.InsertAuditTrailv2("Restore Buffalo Herd" + " " + status, DateTime.Now.ToString("yyyy-MM-dd"), "Herd Module", tblHBuffHerdModel.RestoredBy, "0", restorationModel.id.ToString());
+
+
+                _context.Entry(tblHBuffHerdModel).State = EntityState.Modified;
+
+
+                await _context.SaveChangesAsync();
+
+                return Ok("Restoration Successful!");
+            }
+            catch (Exception ex)
+            {
+                return Problem(ex.GetBaseException().ToString());
+            }
         }
     }
 }

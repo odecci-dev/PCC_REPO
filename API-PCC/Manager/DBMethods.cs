@@ -176,6 +176,27 @@ namespace API_PCC.Manager
 
             return db.DB_WithParam(Insert);
         }
+
+        public string InsertAuditTrailv2(string actions, string datecreated, string module, string userid, string read, string refno)
+        {
+            string Insert = $@"INSERT INTO [dbo].[tbl_audittrail]
+                           ([Actions]
+                           ,[Module]
+                           ,[DateCreated]
+                           ,[UserId]
+                           ,[status]
+                           ,[Reference])
+                         VALUES
+                               ('" + actions + "'," +
+                             "'" + module + "'," +
+                             "'" + datecreated + "'," +
+                             "'" + userid + "'," +
+                             "'" + read + "'," +
+                              "'" + refno + "') ";
+
+            return db.DB_WithParam(Insert);
+        }
+
         public List<UserTypeAction_Model> UserTypeParams(int id)
         {
             string sql = $@"SELECT [Id]
