@@ -1,4 +1,5 @@
-﻿using API_PCC.ApplicationModels;
+﻿using Antlr4.Runtime;
+using API_PCC.ApplicationModels;
 using API_PCC.ApplicationModels.Common;
 using API_PCC.Data;
 using API_PCC.DtoModels;
@@ -314,6 +315,9 @@ namespace API_PCC.Controllers
                 return Problem(ex.GetBaseException().ToString());
             }
 
+            status += "Save Successful!";
+            dbmet.InsertAuditTrailv2("Save Farmer Details" + " " + status, DateTime.Now.ToString("yyyy-MM-dd"), "Farmer Module", model.CreatedBy.ToString(), "0",generatedFarmerId.ToString());
+
             return Ok("Successfully Saved. Farmer ID: " + generatedFarmerId);
         }
 
@@ -456,7 +460,7 @@ namespace API_PCC.Controllers
                 _context.Entry(farmer).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
                 status += "Update Successful!";
-                dbmet.InsertAuditTrail("Update Farmer Details" + " " + status, DateTime.Now.ToString("yyyy-MM-dd"), "Herd Module", farmer.Updated_By.ToString(), "0");
+                dbmet.InsertAuditTrailv2("Update Farmer Details" + " " + status, DateTime.Now.ToString("yyyy-MM-dd"), "Herd Module", farmer.Updated_By.ToString(), "0",id.ToString());
                 return Ok(status);
 
             }
@@ -488,6 +492,10 @@ namespace API_PCC.Controllers
                 farmer.Deleted_By = int.Parse(deletionModel.deletedBy);
                 _context.Entry(farmer).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
+
+                status += "Delete Successful!";
+                dbmet.InsertAuditTrailv2("Delete Farmer Details" + " " + status, DateTime.Now.ToString("yyyy-MM-dd"), "Farmer Module", deletionModel.deletedBy.ToString(), "0", deletionModel.id.ToString());
+
                 return Ok("Deletion Successful!");
             }
             catch (Exception ex)
@@ -522,6 +530,11 @@ namespace API_PCC.Controllers
 
                 _context.Entry(farmer).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
+
+                status += "Restore Successful!";
+                dbmet.InsertAuditTrailv2("Restore Farmer Details" + " " + status, DateTime.Now.ToString("yyyy-MM-dd"), "Farmer Module", restorationModel.restoredBy.ToString(), "0", restorationModel.id.ToString());
+
+
                 return Ok("Restoration Successful!");
             }
             catch (Exception ex)
@@ -804,6 +817,209 @@ namespace API_PCC.Controllers
             });
 
             return sqlParameters.ToArray();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ArchiveMultiple(List<DeletionModel> deletionModelList)
+        {
+            if (_context.Tbl_Farmers == null)
+            {
+                return Problem("Entity set 'PCC_DEVContext.Tbl_Farmers' is null!");
+            }
+
+            try
+            {
+                var idsToCheck = deletionModelList.Select(d => d.id).ToList();
+                var tblFarmerModels = await _context.Tbl_Farmers
+                    .Where(model => idsToCheck.Contains(model.Id))
+                    .ToListAsync();
+
+                var recordsToDelete = tblFarmerModels
+                    .Where(model => !model.Is_Deleted)
+                    .ToList();
+
+                if (recordsToDelete.Count != idsToCheck.Count)
+                {
+                    return Conflict("Some records have no match or are already marked for deletion!");
+                }
+
+                //foreach (var tblCenterModel in recordsToDelete)
+                //{
+                //    bool centerNameExistsInBuffHerd = _context.HBuffHerds
+                //        .Any(buffHerd => !buffHerd.DeleteFlag && buffHerd.Center == tblCenterModel.Id);
+
+                //    if (centerNameExistsInBuffHerd)
+                //    {
+                //        return Conflict("One or more records are used by other tables!");
+                //    }
+                //}
+
+                foreach (DeletionModel deletionModel in deletionModelList)
+                {
+                    var tblFarmerModel = tblFarmerModels.FirstOrDefault(model => model.Id == deletionModel.id);
+
+                    if (tblFarmerModel == null)
+                    {
+                        continue;
+                    }
+
+                    tblFarmerModel.Is_Deleted = true;
+                    tblFarmerModel.Deleted_At = DateTime.Now;
+                    tblFarmerModel.Deleted_By = int.Parse(deletionModel.deletedBy);
+                    tblFarmerModel.Restored_At = null;
+                    tblFarmerModel.Restored_By = 0;
+                    _context.Entry(tblFarmerModel).State = EntityState.Modified;
+
+                    status += "Delete Successful!";
+                    dbmet.InsertAuditTrailv2("Delete Farmer Details" + " " + status, DateTime.Now.ToString("yyyy-MM-dd"), "Farmer Module", tblFarmerModel.Deleted_By.ToString(), "0", deletionModel.id.ToString());
+
+                }
+
+                await _context.SaveChangesAsync();
+
+                return Ok("Deletion Successful!");
+            }
+            catch (Exception ex)
+            {
+                return Problem(ex.GetBaseException().ToString());
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ArchiveSingle(DeletionModel deletionModel)
+        {
+            if (_context.Tbl_Farmers == null)
+            {
+                return Problem("Entity set 'PCC_DEVContext.Tbl_Farmers' is null!");
+            }
+
+            try
+            {
+                
+                    var tblFarmerModel = _context.Tbl_Farmers.FirstOrDefault(model => model.Id == deletionModel.id && !model.Is_Deleted);
+
+                    if (tblFarmerModel == null)
+                    {
+                    return Conflict("Records have no match or are already marked for deletion!");
+                }
+
+                    tblFarmerModel.Is_Deleted = true;
+                    tblFarmerModel.Deleted_At = DateTime.Now;
+                    tblFarmerModel.Deleted_By = int.Parse(deletionModel.deletedBy);
+                    tblFarmerModel.Restored_At = null;
+                    tblFarmerModel.Restored_By = 0;
+                    _context.Entry(tblFarmerModel).State = EntityState.Modified;
+                
+
+                await _context.SaveChangesAsync();
+
+                return Ok("Deletion Successful!");
+            }
+            catch (Exception ex)
+            {
+                return Problem(ex.GetBaseException().ToString());
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> RestoreMultiple(List<RestorationModel> restorationModelList)
+        {
+            if (_context.Tbl_Farmers == null)
+            {
+                return Problem("Entity set 'PCC_DEVContext.Tbl_Farmers' is null!");
+            }
+
+            try
+            {
+                var idsToCheck = restorationModelList.Select(d => d.id).ToList();
+                var tblFarmerModels = await _context.Tbl_Farmers
+                    .Where(model => idsToCheck.Contains(model.Id))
+                    .ToListAsync();
+
+                var recordsToRestore = tblFarmerModels
+                    .Where(model => model.Is_Deleted)
+                    .ToList();
+
+                if (recordsToRestore.Count != idsToCheck.Count)
+                {
+                    return Conflict("Some records have no match or are already active!");
+                }
+
+                //foreach (var tblCenterModel in recordsToDelete)
+                //{
+                //    bool centerNameExistsInBuffHerd = _context.HBuffHerds
+                //        .Any(buffHerd => !buffHerd.DeleteFlag && buffHerd.Center == tblCenterModel.Id);
+
+                //    if (centerNameExistsInBuffHerd)
+                //    {
+                //        return Conflict("One or more records are used by other tables!");
+                //    }
+                //}
+
+                foreach (RestorationModel restorationModel in restorationModelList)
+                {
+                    var tblFarmerModel = tblFarmerModels.FirstOrDefault(model => model.Id == restorationModel.id);
+
+                    if (tblFarmerModel == null)
+                    {
+                        continue;
+                    }
+
+                    tblFarmerModel.Is_Deleted = false;
+                    tblFarmerModel.Deleted_At = null;
+                    tblFarmerModel.Deleted_By = 0;
+                    tblFarmerModel.Restored_At = DateTime.Now;
+                    tblFarmerModel.Restored_By = int.Parse(restorationModel.restoredBy);
+                    _context.Entry(tblFarmerModel).State = EntityState.Modified;
+
+                    status += "Restore Successful!";
+                    dbmet.InsertAuditTrailv2("Restore Farmer Details" + " " + status, DateTime.Now.ToString("yyyy-MM-dd"), "Farmer Module", tblFarmerModel.Restored_By.ToString(), "0", restorationModel.id.ToString());
+
+                }
+
+                await _context.SaveChangesAsync();
+
+                return Ok("Restoration Successful!");
+            }
+            catch (Exception ex)
+            {
+                return Problem(ex.GetBaseException().ToString());
+            }
+        }
+        [HttpPost]
+        public async Task<IActionResult> RestoreSingle(RestorationModel restorationModel)
+        {
+            if (_context.Tbl_Farmers == null)
+            {
+                return Problem("Entity set 'PCC_DEVContext.Tbl_Farmers' is null!");
+            }
+
+            try
+            {
+
+                var tblFarmerModel = _context.Tbl_Farmers.FirstOrDefault(model => model.Id == restorationModel.id && model.Is_Deleted);
+
+                if (tblFarmerModel == null)
+                {
+                    return Conflict("Records have no match or are already marked for deletion!");
+                }
+
+                tblFarmerModel.Is_Deleted = false;
+                tblFarmerModel.Deleted_At = null;
+                tblFarmerModel.Deleted_By = 0;
+                tblFarmerModel.Restored_At = DateTime.Now;
+                tblFarmerModel.Restored_By = int.Parse(restorationModel.restoredBy);
+                _context.Entry(tblFarmerModel).State = EntityState.Modified;
+
+
+                await _context.SaveChangesAsync();
+
+                return Ok("Restoration Successful!");
+            }
+            catch (Exception ex)
+            {
+                return Problem(ex.GetBaseException().ToString());
+            }
         }
     }
 }

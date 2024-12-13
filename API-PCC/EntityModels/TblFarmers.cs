@@ -30,7 +30,7 @@ namespace API_PCC.EntityModels
         public int? Restored_By { get; set; }
         public DateTime? Restored_At { get; set; }
         public DateTime? Deleted_At { get; set; }
-        public bool? Is_Deleted { get; set; }
+        public bool Is_Deleted { get; set; }
 
     }
 }
