@@ -1,4 +1,4 @@
-﻿using API_PCC.ApplicationModels;
+﻿    using API_PCC.ApplicationModels;
 using API_PCC.ApplicationModels.Common;
 using API_PCC.Data;
 using API_PCC.Manager;
@@ -519,7 +519,29 @@ namespace API_PCC.Controllers
             breed.DateUpdated = DateTime.Now;
             breed.UpdatedBy = breedUpdateModel.UpdatedBy;
         }
+        [HttpGet]
+        public async Task<IActionResult> GetBreedCount()
+        {
+            string sql = $@"select  M.Breed_Code BreedId,COALESCE(M.count, 0 ) male, COALESCE(F.count, 0) female from (select count (*) count, Breed_Code from A_Buff_Animal where sex = 'male' group by Breed_Code) as M
+left join (select count (*) count, Breed_Code from A_Buff_Animal where sex = 'female' group by Breed_Code) as F on  F.Breed_Code = M.Breed_Code";
+            //string result = "";
+            DataTable dt = db.SelectDb(sql).Tables[0];
+            var result = new HerdCount();
+            foreach (DataRow dr in dt.Rows)
+            {
+                result.breedId = dr["BreedId"].ToString();
+                result.male = dr["male"].ToString();
+                result.female = dr["female"].ToString();
+            }
 
-       
+            return Ok(result);
+        }
+        public class HerdCount
+        {
+            public string breedId { get; set; }
+            public string male { get; set; }
+            public string female { get; set; }
+        }
+
     }
 }

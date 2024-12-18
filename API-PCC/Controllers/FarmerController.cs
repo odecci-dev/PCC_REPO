@@ -10,9 +10,11 @@ using API_PCC.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NuGet.Protocol.Core.Types;
 using System.Data;
 using System.Data.SqlClient;
 using static API_PCC.Controllers.BreedRegistryHerdController;
+using static API_PCC.Controllers.BuffAnimalsController;
 using static API_PCC.Controllers.UserManagementController;
 namespace API_PCC.Controllers
 {
@@ -1015,6 +1017,217 @@ namespace API_PCC.Controllers
                 await _context.SaveChangesAsync();
 
                 return Ok("Restoration Successful!");
+            }
+            catch (Exception ex)
+            {
+                return Problem(ex.GetBaseException().ToString());
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> import(List<FarmerSaveInfoModel> model)
+        {
+            List<HBuffHerd> listOfImportedbuffHerd = new List<HBuffHerd>();
+
+            string filePath = @"C:\data\savebuffanimal.json"; // Replace with your desired file path
+
+            try
+            {
+                for (int x = 0; x < model.Count; x++)
+                {
+                    try
+                    {
+                        int generatedFarmerId = 0;
+                        string Insert = "";
+                        string isfarmer = $@"SELECT * FROM tbl_Farmers WHERE User_Id = '{model[x].UserId}'";
+                        DataTable tbl_isfarmer = db.SelectDb(isfarmer).Tables[0];
+
+                        string herd = $@"SELECT * FROM H_Buff_Herd WHERE id = '{model[x].HerdId}'";
+                        DataTable tbl_herd = db.SelectDb(herd).Tables[0];
+
+                        string isAffil = $@"SELECT * FROM H_Farmer_Affiliation WHERE F_Code = '{model[x].FarmerAffliation_Id}'";
+                        DataTable tbl_isAffil = db.SelectDb(isAffil).Tables[0];
+
+                        string isclassification = $@"SELECT * FROM H_Herd_Classification WHERE Herd_Class_Code = '{model[x].FarmerClassification_Id}'";
+                        DataTable tbl_isclassificationl = db.SelectDb(isclassification).Tables[0];
+
+                        if (tbl_isfarmer.Rows.Count != 0)
+                        {
+                            return BadRequest("User is already a Farmer");
+                        }
+
+                        if (tbl_herd.Rows.Count == 0)
+                        {
+                            return BadRequest("Herd id does not exist");
+                        }
+
+                        if (tbl_isAffil.Rows.Count == 0)
+                        {
+                            return BadRequest("Affiliation System Id does not exist");
+                        }
+                        if (tbl_isclassificationl.Rows.Count == 0)
+                        {
+                            return BadRequest("Classification System Id does not exist");
+                        }
+
+                        foreach (var feed in model[x].FeedingSystemId)
+                        {
+                            string isfeeding = $@"SELECT * FROM H_Feeding_System WHERE Id = '{feed.FarmerFeedId}'";
+                            DataTable tbl_isfeeding = db.SelectDb(isfeeding).Tables[0];
+
+                            if (tbl_isfeeding.Rows.Count == 0)
+                            {
+                                return BadRequest($"Feeding System Id {feed.FarmerFeedId} does not exist");
+                            }
+                        }
+                        foreach (var breed in model[x].BreedTypeId)
+                        {
+                            string isbreed = $@"SELECT * FROM A_Breed WHERE Id = '{breed.FarmerBreedId}'";
+                            DataTable tbl_isbreed = db.SelectDb(isbreed).Tables[0];
+
+                            if (tbl_isbreed.Rows.Count == 0)
+                            {
+                                return BadRequest($"Breed Type Id {breed.FarmerBreedId} does not exist");
+                            }
+                        }
+
+                        try
+                        {
+                            var farmer = new TblFarmers
+                            {
+                                FirstName = model[x].FirstName,
+                                LastName = model[x].LastName,
+                                Address = model[x].Address,
+                                TelephoneNumber = model[x].TelephoneNumber,
+                                MobileNumber = model[x].MobileNumber,
+                                User_Id = model[x].UserId,
+                                Group_Id = model[x].Group_Id,
+                                Is_Manager = model[x].Is_Manager,
+                                FarmerClassification_Id = model[x].FarmerClassification_Id,
+                                FarmerAffliation_Id = model[x].FarmerAffliation_Id,
+                                Created_By = model[x].CreatedBy,
+                                Created_At = DateTime.Now,
+                                Email = model[x].Email,
+                                Deleted_At = DateTime.Now,
+                                Is_Deleted = false
+                            };
+
+                            _context.Tbl_Farmers.Add(farmer);
+                            await _context.SaveChangesAsync();
+
+                            generatedFarmerId = farmer.Id;
+
+                            foreach (var feed in model[x].FeedingSystemId)
+                            {
+                                string isfeeding = $@"SELECT * FROM H_Feeding_System WHERE Id = '{feed.FarmerFeedId}'";
+                                DataTable tbl_isfeeding = db.SelectDb(isfeeding).Tables[0];
+
+                                if (tbl_isfeeding.Rows.Count == 0)
+                                {
+                                    return BadRequest($"Feeding System Id {feed.FarmerFeedId} does not exist");
+                                }
+
+                                Insert += $@"
+                    INSERT INTO [dbo].[tbl_FarmerFeedingSystem]
+                           ([Farmer_Id]
+                           ,[FeedingSystem_Id]
+                           ,[Created_By]
+                           ,[Is_Deleted]
+                           ,[Created_At])
+                    VALUES
+                       ('{generatedFarmerId}',
+                        '{feed.FarmerFeedId}',
+                        '{model[x].CreatedBy}',
+                        '0',
+                        '{DateTime.Now:yyyy-MM-dd}');";
+                            }
+
+                            foreach (var breed in model[x].BreedTypeId)
+                            {
+                                string isbreed = $@"SELECT * FROM A_Breed WHERE Id = '{breed.FarmerBreedId}'";
+                                DataTable tbl_isbreed = db.SelectDb(isbreed).Tables[0];
+
+                                if (tbl_isbreed.Rows.Count == 0)
+                                {
+                                    return BadRequest($"Breed Type Id {breed.FarmerBreedId} does not exist");
+                                }
+
+                                Insert += $@"
+                    INSERT INTO [dbo].[tbl_FarmerBreedType]
+                           ([Farmer_Id]
+                           ,[BreedType_Id]
+                           ,[Created_By]
+                           ,[Is_Deleted]
+                           ,[Created_At])
+                    VALUES
+                       ('{generatedFarmerId}',
+                        '{breed.FarmerBreedId}',
+                        '{model[x].UserId}',
+                        '0',
+                        '{DateTime.Now:yyyy-MM-dd}');";
+                            }
+
+                            Insert += $@"INSERT INTO tbl_HerdFarmer (Herd_Id, Farmer_Id) VALUES ({model[x].HerdId}, {generatedFarmerId});";
+
+
+                            if (!string.IsNullOrEmpty(Insert))
+                            {
+                                db.DB_WithParam(Insert);
+                            }
+
+                        }
+                        catch (Exception ex)
+                        {
+                            return Problem(ex.GetBaseException().ToString());
+                        }
+
+                        status += "Save Successful!";
+                        dbmet.InsertAuditTrailv2("Save Farmer Details" + " " + status, DateTime.Now.ToString("yyyy-MM-dd"), "Farmer Module", model[x].CreatedBy.ToString(), "0", generatedFarmerId.ToString());
+
+                        return Ok("Successfully Saved. Farmer ID: " + generatedFarmerId);
+                    }
+                    catch (Exception ex)
+                    {
+                        return Problem(ex.GetBaseException().ToString());
+                    }
+                }
+            }
+            catch (BadHttpRequestException ex)
+            {
+                return BadRequest(ex.GetBaseException().ToString());
+            }
+            return CreatedAtAction("import", listOfImportedbuffHerd);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetFarmerCount()
+        {
+            string sql = $@"select count (*) as count from Tbl_Farmers";
+            //string result = "";
+            DataTable dt = db.SelectDb(sql).Tables[0];
+            var result = new FarmerCount();
+            foreach (DataRow dr in dt.Rows)
+            {
+                result.count = dr["count"].ToString();
+            }
+
+            return Ok(result);
+        }
+        public class FarmerCount
+        {
+            public string count { get; set; }
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<FarmerView>>> Export()
+        {
+            FarmerSearchFilterModel searchFilter = new FarmerSearchFilterModel();
+            searchFilter.searchValue = "";
+            try
+            {
+                DataTable queryResult = db.SelectDb_WithParamAndSorting(QueryBuilder.buildFarmerSearch(searchFilter), null, populateSqlParameters(searchFilter));
+                var result = farmersPagedModel(searchFilter, queryResult);
+                return Ok(result);
             }
             catch (Exception ex)
             {
