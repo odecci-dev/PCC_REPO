@@ -25,6 +25,8 @@ using API_PCC.DtoModels;
 using static API_PCC.Controllers.BreedRegistryHerdController;
 using Antlr4.Runtime;
 using System;
+using static API_PCC.Controllers.BloodCompsController;
+using System.Globalization;
 namespace API_PCC.Controllers
 {
     [Authorize("ApiKey")]
@@ -637,6 +639,7 @@ namespace API_PCC.Controllers
             public string FarmerManagerName { get; set; }
             public string Center { get; set; }
             public string? Address { get; set; }
+            public FarmerPaginationModel FarmerPagination { get; set; }
             public List<HerdFarmers> Farmers { get; set; }
 
         }
@@ -649,6 +652,16 @@ namespace API_PCC.Controllers
             public List<string> FeedingSystem { get; set; }
             public string FarmerClassification { get; set; }
             public int CowLevel { get; set; }
+        }
+
+        public class FarmerPaginationModel
+        {
+            public string? CurrentPage { get; set; }
+            public string? NextPage { get; set; }
+            public string? PrevPage { get; set; }
+            public string? TotalPage { get; set; }
+            public string? PageSize { get; set; }
+            public string? TotalRecord { get; set; }
         }
 
         [HttpPost]
@@ -694,6 +707,34 @@ namespace API_PCC.Controllers
                     .ToList();
 
                 var herdFarmersList = new List<HerdFarmers>();
+                var farmerPagination = new List<FarmerPaginationModel>();
+
+                int pagesize = 10;
+                int page = 1;
+                var items = (dynamic)null;
+                int totalItems = 0;
+                int totalPages = 0;
+
+                var bloodCompList = herdFarmersIds.ToList();
+                totalItems = bloodCompList.ToList().Count();
+                totalPages = (int)Math.Ceiling((double)totalItems / pagesize);
+                items = bloodCompList.Skip((page - 1) * pagesize).Take(pagesize).ToList();
+                //var bloodcompo = convertDataRowListToBloodCompList(items);
+                var result = new List<FarmerPaginationModel>();
+                var fitem = new FarmerPaginationModel();
+
+
+                int pages = 1;
+                fitem.CurrentPage = "1";
+                int page_prev = pages - 1;
+
+                double t_records = Math.Ceiling(Convert.ToDouble(totalItems) / Convert.ToDouble(pagesize));
+                int page_next = pages + 1;
+                fitem.NextPage = items.Count % pagesize >= 0 ? page_next.ToString() : "0";
+                fitem.PrevPage = pages == 1 ? "0" : page_prev.ToString();
+                fitem.TotalPage = t_records.ToString();
+                fitem.PageSize = pagesize.ToString();
+                fitem.TotalRecord = totalItems.ToString();
 
                 foreach (var farmerId in herdFarmersIds)
                 {
@@ -739,6 +780,7 @@ namespace API_PCC.Controllers
                     FarmerId = buffHerd.FarmerId,
                     FarmerManagerName = buffHerd.FarmerManagerName,
                     Address = buffHerd.Address,
+                    FarmerPagination = fitem,
                     Farmers = herdFarmersList 
                 };
 
@@ -1454,6 +1496,125 @@ namespace API_PCC.Controllers
                 await _context.SaveChangesAsync();
 
                 return Ok("Restoration Successful!");
+            }
+            catch (Exception ex)
+            {
+                return Problem(ex.GetBaseException().ToString());
+            }
+        }
+        [HttpPost]
+        public async Task<ActionResult<HBuffHerd>> Import(List<BuffHerdRegistrationModel> registrationModel)
+        {
+
+            List<HBuffHerd> listOfImportedbuffHerd = new List<HBuffHerd>();
+
+            string filePath = @"C:\data\savebuffanimal.json"; // Replace with your desired file path
+
+            try
+            {
+                for (int x = 0; x < registrationModel.Count; x++)
+                {
+
+                    int? farmerGeneratedId = 0;
+                    var farmerDetails = new TblUsersModel();
+                    try
+                    {
+
+                        DataTable buffHerdDuplicateCheck = db.SelectDb_WithParamAndSorting(QueryBuilder.buildHerdDuplicateCheckSaveQuery(), null, populateSqlParameters(registrationModel[x].HerdName, registrationModel[x].HerdCode));
+
+                        if (buffHerdDuplicateCheck.Rows.Count > 0)
+                        {
+                            status = "Herd already exists";
+                            return Conflict(status);
+                        }
+
+                        var isfarmer = _context.Tbl_Farmers.Where(f => f.User_Id == int.Parse(registrationModel[x].FarmManager)).FirstOrDefault();
+
+                        if (isfarmer != null)
+                        {
+                            farmerGeneratedId = isfarmer.Id;
+                        }
+                        else
+                        {
+                            farmerDetails = _context.TblUsersModels.FirstOrDefault(f => f.Id == int.Parse(registrationModel[x].FarmManager));
+
+                            var farmer = new TblFarmers
+                            {
+                                User_Id = int.Parse(registrationModel[x].FarmManager),
+                                FirstName = farmerDetails.Fname ?? "",
+                                LastName = farmerDetails.Lname ?? "",
+                                Group_Id = registrationModel[x].GroupId,
+                                Is_Manager = true,
+                                FarmerClassification_Id = 0,
+                                FarmerAffliation_Id = 0,
+                                Address = farmerDetails.Address ?? registrationModel[x].FarmAddress,
+                                Created_By = int.Parse(registrationModel[x].CreatedBy),
+                                Created_At = DateTime.Now,
+                                Is_Deleted = false
+                            };
+
+                            _context.Tbl_Farmers.Add(farmer);
+                            await _context.SaveChangesAsync();
+
+                            //farmerGeneratedId = farmer.User_Id;
+                            farmerGeneratedId = farmer.Id;
+                        }
+
+                        registrationModel[x].FarmManager = farmerGeneratedId.ToString();
+
+
+                        var BuffHerdModel = buildBuffHerd(registrationModel[x]);
+                        DataTable farmOwnerRecordsCheck = db.SelectDb_WithParamAndSorting(QueryBuilder.buildFarmOwnerSearchQueryByFirstNameAndLastName(), null, populateSqlParametersFarmer(registrationModel[x].Owner));
+
+
+
+                        //populateFeedingSystemAndBuffaloType(BuffHerdModel, registrationModel);
+
+                        BuffHerdModel.CreatedBy = registrationModel[x].CreatedBy;
+                        BuffHerdModel.DateCreated = DateTime.Now;
+
+                        _context.HBuffHerds.Add(BuffHerdModel);
+                        await _context.SaveChangesAsync();
+
+
+
+
+                        status = "Herd successfully registered!";
+                        dbmet.InsertAuditTrailv2("Save Buffalo Herd" + " " + status, DateTime.Now.ToString("yyyy-MM-dd"), "Herd Module", registrationModel[x].CreatedBy, "0", farmerGeneratedId.ToString());
+
+                        return Ok(status);
+
+                    }
+                    catch (Exception ex)
+                    {
+                        dbmet.InsertAuditTrail("Save Buffalo Herd" + " " + ex.Message, DateTime.Now.ToString("yyyy-MM-dd"), "Herd Module", registrationModel[x].CreatedBy, "0");
+
+                        return Problem(ex.GetBaseException().ToString());
+                    }
+                }
+            }
+            catch (BadHttpRequestException ex)
+            {
+                return BadRequest(ex.GetBaseException().ToString());
+            }
+            return CreatedAtAction("import", listOfImportedbuffHerd);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Export()
+        {
+            FarmerHerdSearch searchFilter = new FarmerHerdSearch();
+            searchFilter.searchParam = "";
+            searchFilter.DateofApplication = "";
+            SortByModel sortby = new SortByModel();
+            sortby.Field = "";
+            sortby.Sort = "";
+            searchFilter.sortBy = sortby;
+            try
+            {
+                var farmerHerds = await buildfarmerherd(searchFilter).ToListAsync();
+                var result = FormList(searchFilter, farmerHerds);
+                return Ok(result);
             }
             catch (Exception ex)
             {

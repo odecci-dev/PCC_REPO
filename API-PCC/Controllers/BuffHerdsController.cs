@@ -21,6 +21,7 @@ using System.Diagnostics.Metrics;
 using static API_PCC.Controllers.UserController;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System;
+using static API_PCC.Controllers.BuffAnimalsController;
 namespace API_PCC.Controllers
 {
     [Authorize("ApiKey")]
@@ -1681,6 +1682,24 @@ namespace API_PCC.Controllers
             }
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetHerdCount()
+        {
+            string sql = $@"select count (*) as count from H_Buff_Herd";
+            //string result = "";
+            DataTable dt = db.SelectDb(sql).Tables[0];
+            var result = new HerdCount();
+            foreach (DataRow dr in dt.Rows)
+            {
+                result.count = dr["count"].ToString();
+            }
+
+            return Ok(result);
+        }
+        public class HerdCount
+        {
+            public string count { get; set; }
+        }
     }
 
 }

@@ -842,7 +842,7 @@ namespace API_PCC.Controllers
                 for (int x = 0; x < buffAnimalRegistrationModel.Count; x++)
                 {
 
-                    dbmet.insertlgos(filePath, JsonSerializer.Serialize(buffAnimalRegistrationModel[x]));
+                    //dbmet.insertlgos(filePath, JsonSerializer.Serialize(buffAnimalRegistrationModel[x]));
 
 
 
@@ -1634,6 +1634,43 @@ namespace API_PCC.Controllers
             };
 
             return buffAnimal;
+        }
+        [HttpPost]
+        public async Task<IActionResult> GetAnimalCount(AnimalCountFilter data)
+        {
+            string sql = $@"select count (*) as count from a_buff_animal";
+            //string result = "";
+
+            if (data.sex != null & data.year == null)
+            {
+                sql += " where sex = '" + data.sex + "'";
+            }
+            else if (data.sex == null & data.year != null)
+            {
+                sql += " where year(Date_of_Birth = '" + data.year + "'";
+            }
+            else if (data.sex != null & data.year != null)
+            {
+                sql += " where sex = '" + data.sex + "' and year(Date_of_Birth) = '" + data.year + "'";
+            }
+            DataTable dt = db.SelectDb(sql).Tables[0];
+            var result = new AnimalCount();
+            foreach (DataRow dr in dt.Rows)
+            {
+                result.count = dr["count"].ToString();
+            }
+
+            return Ok(result);
+        }
+
+        public class AnimalCountFilter
+        {
+            public string? sex { get; set; }
+            public string? year { get; set; }
+        }
+        public class AnimalCount
+        {
+            public string count { get; set; }
         }
     }
 }
